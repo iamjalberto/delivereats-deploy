@@ -1,0 +1,166 @@
+version: "3.8"
+
+services:
+  # ==================== DATABASES ====================
+  auth-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    ports:
+      - "5441:5432"
+
+  restaurant-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: restaurant_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - restaurant-db-data:/var/lib/postgresql/data
+    ports:
+      - "5442:5432"
+
+  order-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - order-db-data:/var/lib/postgresql/data
+    ports:
+      - "5443:5432"
+
+  delivery-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: delivery_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - delivery-db-data:/var/lib/postgresql/data
+    ports:
+      - "5444:5432"
+
+  # ==================== MICROSERVICES ====================
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    environment:
+      PORT: 50051
+      DB_HOST: auth-db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: auth_db
+      JWT_SECRET: delivereats_secret_key_sa_2026
+    depends_on:
+      - auth-db
+    ports:
+      - "50051:50051"
+
+  restaurant-catalog-service:
+    build:
+      context: ./restaurant-catalog-service
+      dockerfile: Dockerfile
+    environment:
+      PORT: 50052
+      DB_HOST: restaurant-db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: restaurant_db
+    depends_on:
+      - restaurant-db
+    ports:
+      - "50052:50052"
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    environment:
+      PORT: 50053
+      DB_HOST: order-db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: order_db
+    depends_on:
+      - order-db
+    ports:
+      - "50053:50053"
+
+  delivery-service:
+    build:
+      context: ./delivery-service
+      dockerfile: Dockerfile
+    environment:
+      PORT: 50054
+      DB_HOST: delivery-db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: delivery_db
+      ORDER_SERVICE_HOST: order-service:50053
+    depends_on:
+      - delivery-db
+      - order-service
+    ports:
+      - "50054:50054"
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    environment:
+      PORT: 50055
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+    ports:
+      - "50055:50055"
+
+  # ==================== API GATEWAY ====================
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    environment:
+      PORT: 3000
+      JWT_SECRET: delivereats_secret_key_sa_2026
+      AUTH_SERVICE_HOST: auth-service:50051
+      RESTAURANT_SERVICE_HOST: restaurant-catalog-service:50052
+      ORDER_SERVICE_HOST: order-service:50053
+      DELIVERY_SERVICE_HOST: delivery-service:50054
+      NOTIFICATION_SERVICE_HOST: notification-service:50055
+    depends_on:
+      - auth-service
+      - restaurant-catalog-service
+      - order-service
+      - delivery-service
+      - notification-service
+    ports:
+      - "3000:3000"
+
+  # ==================== FRONTEND ====================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - api-gateway
+
+volumes:
+  auth-db-data:
+  restaurant-db-data:
+  order-db-data:
+  delivery-db-data:

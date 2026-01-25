@@ -1,0 +1,354 @@
+import { useState, useEffect } from "react";
+import api from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
+
+const RestaurantDashboard = () => {
+  const { user } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [menuItems, setMenuItems] = useState([]);
+  const [restaurants, setRestaurants] = useState([]);
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [showMenuForm, setShowMenuForm] = useState(false);
+  const [menuForm, setMenuForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    category: "",
+    available: true,
+  });
+  const [editingItem, setEditingItem] = useState(null);
+
+  useEffect(() => {
+    fetchRestaurants();
+  }, []);
+
+  useEffect(() => {
+    if (selectedRestaurant) {
+      fetchOrders();
+      fetchMenu();
+    }
+  }, [selectedRestaurant]);
+
+  const fetchRestaurants = async () => {
+    try {
+      const res = await api.get("/restaurants");
+      const myRestaurants = (res.data.restaurants || []).filter(
+        (r) => r.owner_id === user.id,
+      );
+      setRestaurants(myRestaurants);
+      if (myRestaurants.length > 0) setSelectedRestaurant(myRestaurants[0]);
+    } catch (error) {
+      toast.error("Error al cargar restaurantes");
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const res = await api.get(`/orders/restaurant/${selectedRestaurant.id}`);
+      setOrders(res.data.orders || []);
+    } catch (error) {
+      console.error("Error fetching orders");
+    }
+  };
+
+  const fetchMenu = async () => {
+    try {
+      const res = await api.get(`/restaurants/${selectedRestaurant.id}/menu`);
+      setMenuItems(res.data.items || []);
+    } catch (error) {
+      console.error("Error fetching menu");
+    }
+  };
+
+  const handleStatusUpdate = async (orderId, status) => {
+    try {
+      await api.put(`/orders/${orderId}/status`, { status });
+      toast.success(`Orden actualizada a ${status}`);
+      fetchOrders();
+    } catch (error) {
+      toast.error("Error al actualizar orden");
+    }
+  };
+
+  const handleReject = async (orderId) => {
+    const reason = prompt("Razón del rechazo:");
+    if (!reason) return;
+    try {
+      await api.put(`/orders/${orderId}/reject`, { reason });
+      toast.success("Orden rechazada");
+      fetchOrders();
+    } catch (error) {
+      toast.error("Error al rechazar orden");
+    }
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    const reason = prompt("Razón de la cancelación:");
+    if (!reason) return;
+    try {
+      await api.put(`/orders/${orderId}/cancel`, { reason });
+      toast.success("Orden cancelada");
+      fetchOrders();
+    } catch (error) {
+      toast.error("Error al cancelar orden");
+    }
+  };
+
+  const handleMenuSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingItem) {
+        await api.put(`/restaurants/menu/${editingItem.id}`, {
+          ...menuForm,
+          price: parseFloat(menuForm.price),
+        });
+        toast.success("Producto actualizado");
+      } else {
+        await api.post(`/restaurants/${selectedRestaurant.id}/menu`, {
+          ...menuForm,
+          price: parseFloat(menuForm.price),
+        });
+        toast.success("Producto creado");
+      }
+      setShowMenuForm(false);
+      setEditingItem(null);
+      setMenuForm({
+        name: "",
+        description: "",
+        price: "",
+        category: "",
+        available: true,
+      });
+      fetchMenu();
+    } catch (error) {
+      toast.error("Error al guardar producto");
+    }
+  };
+
+  const handleDeleteItem = async (itemId) => {
+    if (!confirm("¿Eliminar este producto?")) return;
+    try {
+      await api.delete(`/restaurants/menu/${itemId}`);
+      toast.success("Producto eliminado");
+      fetchMenu();
+    } catch (error) {
+      toast.error("Error al eliminar");
+    }
+  };
+
+  const startEdit = (item) => {
+    setEditingItem(item);
+    setMenuForm({
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      category: item.category,
+      available: item.available,
+    });
+    setShowMenuForm(true);
+  };
+
+  if (!selectedRestaurant) {
+    return (
+      <div className="empty-state">
+        <span>🏪</span>
+        <p>No tienes restaurantes asignados. Contacta al administrador.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h2>🏪 Panel de Restaurante: {selectedRestaurant.name}</h2>
+
+      {/* ÓRDENES */}
+      <h3 style={{ marginTop: "1.5rem", marginBottom: "0.5rem" }}>
+        📋 Órdenes Recibidas
+      </h3>
+      {orders.length === 0 ? (
+        <p style={{ color: "#999" }}>No hay órdenes.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Cliente</th>
+              <th>Total</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((o) => (
+              <tr key={o.id}>
+                <td>{o.id}</td>
+                <td>{o.client_name}</td>
+                <td>Q{parseFloat(o.total).toFixed(2)}</td>
+                <td>
+                  <span className={`badge badge-${o.status.toLowerCase()}`}>
+                    {o.status}
+                  </span>
+                </td>
+                <td>
+                  <div className="btn-group">
+                    {o.status === "CREADA" && (
+                      <>
+                        <button
+                          className="btn btn-success btn-sm"
+                          onClick={() => handleStatusUpdate(o.id, "EN_PROCESO")}
+                        >
+                          Aceptar
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleReject(o.id)}
+                        >
+                          Rechazar
+                        </button>
+                      </>
+                    )}
+                    {o.status === "EN_PROCESO" && (
+                      <button
+                        className="btn btn-info btn-sm"
+                        onClick={() => handleStatusUpdate(o.id, "LISTA")}
+                      >
+                        Marcar Lista
+                      </button>
+                    )}
+                    {!["CANCELADA", "RECHAZADA", "ENTREGADA"].includes(
+                      o.status,
+                    ) && (
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleCancelOrder(o.id)}
+                      >
+                        Cancelar
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {/* MENÚ */}
+      <h3 style={{ marginTop: "2rem", marginBottom: "0.5rem" }}>
+        🍽️ Menú
+        <button
+          className="btn btn-primary btn-sm"
+          style={{ marginLeft: "1rem" }}
+          onClick={() => {
+            setShowMenuForm(!showMenuForm);
+            setEditingItem(null);
+            setMenuForm({
+              name: "",
+              description: "",
+              price: "",
+              category: "",
+              available: true,
+            });
+          }}
+        >
+          {showMenuForm ? "Cerrar" : "+ Nuevo Producto"}
+        </button>
+      </h3>
+
+      {showMenuForm && (
+        <form
+          onSubmit={handleMenuSubmit}
+          className="card"
+          style={{ maxWidth: "500px" }}
+        >
+          <div className="form-group">
+            <label>Nombre</label>
+            <input
+              value={menuForm.name}
+              onChange={(e) =>
+                setMenuForm({ ...menuForm, name: e.target.value })
+              }
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Descripción</label>
+            <textarea
+              value={menuForm.description}
+              onChange={(e) =>
+                setMenuForm({ ...menuForm, description: e.target.value })
+              }
+            />
+          </div>
+          <div className="form-group">
+            <label>Precio (Q)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={menuForm.price}
+              onChange={(e) =>
+                setMenuForm({ ...menuForm, price: e.target.value })
+              }
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Categoría</label>
+            <input
+              value={menuForm.category}
+              onChange={(e) =>
+                setMenuForm({ ...menuForm, category: e.target.value })
+              }
+            />
+          </div>
+          <div className="form-group">
+            <label>
+              <input
+                type="checkbox"
+                checked={menuForm.available}
+                onChange={(e) =>
+                  setMenuForm({ ...menuForm, available: e.target.checked })
+                }
+              />{" "}
+              Disponible
+            </label>
+          </div>
+          <button type="submit" className="btn btn-primary">
+            {editingItem ? "Actualizar" : "Crear"} Producto
+          </button>
+        </form>
+      )}
+
+      <div className="card-grid" style={{ marginTop: "1rem" }}>
+        {menuItems.map((item) => (
+          <div key={item.id} className="card">
+            <h3>{item.name}</h3>
+            <p>{item.description}</p>
+            <p>
+              <strong>Q{parseFloat(item.price).toFixed(2)}</strong> |{" "}
+              {item.category || "Sin categoría"}
+            </p>
+            <p>{item.available ? "✅ Disponible" : "❌ No disponible"}</p>
+            <div className="btn-group">
+              <button
+                className="btn btn-warning btn-sm"
+                onClick={() => startEdit(item)}
+              >
+                Editar
+              </button>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => handleDeleteItem(item.id)}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default RestaurantDashboard;
