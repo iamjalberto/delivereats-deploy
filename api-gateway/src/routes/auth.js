@@ -1,5 +1,5 @@
 const express = require("express");
-const { authClient, grpcCall } = require("./grpcClients");
+const { authClient, grpcCall } = require("../grpcClients");
 
 const router = express.Router();
 

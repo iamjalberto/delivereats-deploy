@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package delivery;
+
+service DeliveryService {
+  rpc AcceptOrder (AcceptOrderRequest) returns (DeliveryResponse);
+  rpc UpdateDeliveryStatus (UpdateDeliveryStatusRequest) returns (DeliveryResponse);
+  rpc GetDeliveryByOrder (GetDeliveryByOrderRequest) returns (DeliveryResponse);
+  rpc ListAvailableOrders (ListAvailableOrdersRequest) returns (ListDeliveriesResponse);
+  rpc ListMyDeliveries (ListMyDeliveriesRequest) returns (ListDeliveriesResponse);
+}
+
+message AcceptOrderRequest {
+  int32 order_id = 1;
+  int32 delivery_person_id = 2;
+  string delivery_person_name = 3;
+}
+
+message UpdateDeliveryStatusRequest {
+  int32 order_id = 1;
+  string status = 2; // EN_CAMINO, ENTREGADA, CANCELADA
+  int32 delivery_person_id = 3;
+  string delivery_person_name = 4;
+  string reason = 5;
+}
+
+message GetDeliveryByOrderRequest {
+  int32 order_id = 1;
+}
+
+message ListAvailableOrdersRequest {}
+
+message ListMyDeliveriesRequest {
+  int32 delivery_person_id = 1;
+}
+
+message DeliveryResponse {
+  bool success = 1;
+  string message = 2;
+  Delivery delivery = 3;
+}
+
+message ListDeliveriesResponse {
+  repeated Delivery deliveries = 1;
+}
+
+message Delivery {
+  int32 id = 1;
+  int32 order_id = 2;
+  int32 delivery_person_id = 3;
+  string delivery_person_name = 4;
+  string status = 5;
+  string accepted_at = 6;
+  string delivered_at = 7;
+}

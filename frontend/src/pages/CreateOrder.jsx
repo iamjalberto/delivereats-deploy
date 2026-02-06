@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import toast from "react-hot-toast";
+import { validateAddress } from "../utils/validators";
+import FieldError from "../components/FieldError";
 
 const CreateOrder = () => {
   const { restaurantId } = useParams();
@@ -10,6 +12,7 @@ const CreateOrder = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [cart, setCart] = useState([]);
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -68,8 +71,16 @@ const CreateOrder = () => {
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleSubmit = async () => {
-    if (cart.length === 0) return toast.error("Agrega productos al carrito");
-    if (!deliveryAddress) return toast.error("Ingresa dirección de entrega");
+    const newErrors = {};
+    if (cart.length === 0)
+      newErrors.cart = "Agrega al menos un producto al carrito";
+    const addrErr = validateAddress(deliveryAddress);
+    if (addrErr) newErrors.address = addrErr;
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) {
+      if (newErrors.cart) toast.error(newErrors.cart);
+      return;
+    }
 
     try {
       const res = await api.post("/orders", {
@@ -166,10 +177,14 @@ const CreateOrder = () => {
                   <label>Dirección de Entrega</label>
                   <textarea
                     value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    placeholder="Ingresa tu dirección completa"
-                    required
+                    onChange={(e) => {
+                      setDeliveryAddress(e.target.value);
+                      setErrors((prev) => ({ ...prev, address: null }));
+                    }}
+                    placeholder="Ingresa tu dirección completa (mín. 10 caracteres)"
+                    className={errors.address ? "input-error" : ""}
                   />
+                  <FieldError error={errors.address} />
                 </div>
                 <button
                   className="btn btn-success"

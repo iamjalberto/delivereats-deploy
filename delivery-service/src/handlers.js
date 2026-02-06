@@ -4,7 +4,7 @@ const protoLoader = require("@grpc/proto-loader");
 const path = require("path");
 
 // Cliente gRPC para Order-Service
-const ORDER_PROTO_PATH = path.join(__dirname, "../../proto/order.proto");
+const ORDER_PROTO_PATH = path.join(__dirname, "proto/order.proto");
 const orderPkgDef = protoLoader.loadSync(ORDER_PROTO_PATH, {
   keepCase: true,
   longs: String,

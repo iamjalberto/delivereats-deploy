@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import api from "../services/api";
 import toast from "react-hot-toast";
+import {
+  validateRequired,
+  validatePhone,
+  runValidations,
+} from "../utils/validators";
+import FieldError from "../components/FieldError";
 
 const AdminDashboard = () => {
   const [restaurants, setRestaurants] = useState([]);
@@ -12,6 +18,7 @@ const AdminDashboard = () => {
     schedule: "",
     food_type: "",
   });
+  const [errors, setErrors] = useState({});
   const [editing, setEditing] = useState(null);
 
   useEffect(() => {
@@ -29,6 +36,15 @@ const AdminDashboard = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const result = runValidations({
+      name: validateRequired(form.name, "El nombre"),
+      address: validateRequired(form.address, "La dirección"),
+      phone: validatePhone(form.phone),
+      food_type: validateRequired(form.food_type, "El tipo de comida"),
+    });
+    setErrors(result.errors);
+    if (!result.valid) return;
+
     try {
       if (editing) {
         await api.put(`/restaurants/${editing.id}`, form);
@@ -46,6 +62,7 @@ const AdminDashboard = () => {
         schedule: "",
         food_type: "",
       });
+      setErrors({});
       fetchRestaurants();
     } catch (error) {
       toast.error("Error al guardar restaurante");
@@ -101,28 +118,43 @@ const AdminDashboard = () => {
           onSubmit={handleSubmit}
           className="card"
           style={{ maxWidth: "500px", marginTop: "1rem" }}
+          noValidate
         >
           <div className="form-group">
-            <label>Nombre</label>
+            <label>Nombre *</label>
             <input
               value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
+              onChange={(e) => {
+                setForm({ ...form, name: e.target.value });
+                setErrors({ ...errors, name: null });
+              }}
+              className={errors.name ? "input-error" : ""}
             />
+            <FieldError error={errors.name} />
           </div>
           <div className="form-group">
-            <label>Dirección</label>
+            <label>Dirección *</label>
             <input
               value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
+              onChange={(e) => {
+                setForm({ ...form, address: e.target.value });
+                setErrors({ ...errors, address: null });
+              }}
+              className={errors.address ? "input-error" : ""}
             />
+            <FieldError error={errors.address} />
           </div>
           <div className="form-group">
             <label>Teléfono</label>
             <input
               value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              onChange={(e) => {
+                setForm({ ...form, phone: e.target.value });
+                setErrors({ ...errors, phone: null });
+              }}
+              className={errors.phone ? "input-error" : ""}
             />
+            <FieldError error={errors.phone} />
           </div>
           <div className="form-group">
             <label>Horario</label>
@@ -133,12 +165,17 @@ const AdminDashboard = () => {
             />
           </div>
           <div className="form-group">
-            <label>Tipo de Comida</label>
+            <label>Tipo de Comida *</label>
             <input
               value={form.food_type}
-              onChange={(e) => setForm({ ...form, food_type: e.target.value })}
+              onChange={(e) => {
+                setForm({ ...form, food_type: e.target.value });
+                setErrors({ ...errors, food_type: null });
+              }}
               placeholder="Mexicana, Italiana, etc."
+              className={errors.food_type ? "input-error" : ""}
             />
+            <FieldError error={errors.food_type} />
           </div>
           <button type="submit" className="btn btn-primary">
             {editing ? "Actualizar" : "Crear"} Restaurante

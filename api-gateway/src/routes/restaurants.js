@@ -1,6 +1,6 @@
 const express = require("express");
-const { restaurantClient, grpcCall } = require("./grpcClients");
-const { authenticateToken, authorizeRoles } = require("./middleware");
+const { restaurantClient, grpcCall } = require("../grpcClients");
+const { authenticateToken, authorizeRoles } = require("../middleware");
 
 const router = express.Router();
 

@@ -4,8 +4,8 @@ const {
   notificationClient,
   orderClient,
   grpcCall,
-} = require("./grpcClients");
-const { authenticateToken, authorizeRoles } = require("./middleware");
+} = require("../grpcClients");
+const { authenticateToken, authorizeRoles } = require("../middleware");
 
 const router = express.Router();
 
@@ -100,12 +100,10 @@ router.put(
 
       res.json(response);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          success: false,
-          message: "Error al actualizar estado de entrega",
-        });
+      res.status(500).json({
+        success: false,
+        message: "Error al actualizar estado de entrega",
+      });
     }
   },
 );
@@ -120,12 +118,10 @@ router.get(
       const response = await grpcCall(orderClient, "ListReadyOrders", {});
       res.json(response);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          success: false,
-          message: "Error al obtener órdenes disponibles",
-        });
+      res.status(500).json({
+        success: false,
+        message: "Error al obtener órdenes disponibles",
+      });
     }
   },
 );

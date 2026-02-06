@@ -5,7 +5,7 @@ const path = require("path");
 const { initDB } = require("./db");
 const handlers = require("./handlers");
 
-const PROTO_PATH = path.join(__dirname, "../../proto/delivery.proto");
+const PROTO_PATH = path.join(__dirname, "proto/delivery.proto");
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,

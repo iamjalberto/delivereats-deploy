@@ -2,6 +2,12 @@ import { useState, useEffect } from "react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
+import {
+  validateRequired,
+  validatePrice,
+  runValidations,
+} from "../utils/validators";
+import FieldError from "../components/FieldError";
 
 const RestaurantDashboard = () => {
   const { user } = useAuth();
@@ -17,6 +23,7 @@ const RestaurantDashboard = () => {
     category: "",
     available: true,
   });
+  const [menuErrors, setMenuErrors] = useState({});
   const [editingItem, setEditingItem] = useState(null);
 
   useEffect(() => {
@@ -97,6 +104,14 @@ const RestaurantDashboard = () => {
 
   const handleMenuSubmit = async (e) => {
     e.preventDefault();
+    const result = runValidations({
+      name: validateRequired(menuForm.name, "El nombre del producto"),
+      price: validatePrice(menuForm.price),
+      category: validateRequired(menuForm.category, "La categoría"),
+    });
+    setMenuErrors(result.errors);
+    if (!result.valid) return;
+
     try {
       if (editingItem) {
         await api.put(`/restaurants/menu/${editingItem.id}`, {
@@ -120,6 +135,7 @@ const RestaurantDashboard = () => {
         category: "",
         available: true,
       });
+      setMenuErrors({});
       fetchMenu();
     } catch (error) {
       toast.error("Error al guardar producto");
@@ -261,16 +277,19 @@ const RestaurantDashboard = () => {
           onSubmit={handleMenuSubmit}
           className="card"
           style={{ maxWidth: "500px" }}
+          noValidate
         >
           <div className="form-group">
-            <label>Nombre</label>
+            <label>Nombre *</label>
             <input
               value={menuForm.name}
-              onChange={(e) =>
-                setMenuForm({ ...menuForm, name: e.target.value })
-              }
-              required
+              onChange={(e) => {
+                setMenuForm({ ...menuForm, name: e.target.value });
+                setMenuErrors({ ...menuErrors, name: null });
+              }}
+              className={menuErrors.name ? "input-error" : ""}
             />
+            <FieldError error={menuErrors.name} />
           </div>
           <div className="form-group">
             <label>Descripción</label>
@@ -282,25 +301,32 @@ const RestaurantDashboard = () => {
             />
           </div>
           <div className="form-group">
-            <label>Precio (Q)</label>
+            <label>Precio (Q) *</label>
             <input
               type="number"
               step="0.01"
+              min="0.01"
               value={menuForm.price}
-              onChange={(e) =>
-                setMenuForm({ ...menuForm, price: e.target.value })
-              }
-              required
+              onChange={(e) => {
+                setMenuForm({ ...menuForm, price: e.target.value });
+                setMenuErrors({ ...menuErrors, price: null });
+              }}
+              className={menuErrors.price ? "input-error" : ""}
             />
+            <FieldError error={menuErrors.price} />
           </div>
           <div className="form-group">
-            <label>Categoría</label>
+            <label>Categoría *</label>
             <input
               value={menuForm.category}
-              onChange={(e) =>
-                setMenuForm({ ...menuForm, category: e.target.value })
-              }
+              onChange={(e) => {
+                setMenuForm({ ...menuForm, category: e.target.value });
+                setMenuErrors({ ...menuErrors, category: null });
+              }}
+              className={menuErrors.category ? "input-error" : ""}
+              placeholder="Bebidas, Entradas, Platos fuertes..."
             />
+            <FieldError error={menuErrors.category} />
           </div>
           <div className="form-group">
             <label>

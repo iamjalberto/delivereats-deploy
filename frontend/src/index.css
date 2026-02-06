@@ -319,3 +319,14 @@ tr:hover {
   display: block;
   margin-bottom: 1rem;
 }
+
+/* Input Validation Errors */
+.input-error {
+  border-color: #e74c3c !important;
+  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2) !important;
+}
+
+.input-error:focus {
+  border-color: #e74c3c !important;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.3) !important;
+}

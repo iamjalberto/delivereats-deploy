@@ -1,6 +1,6 @@
 const express = require("express");
-const { orderClient, notificationClient, grpcCall } = require("./grpcClients");
-const { authenticateToken, authorizeRoles } = require("./middleware");
+const { orderClient, notificationClient, grpcCall } = require("../grpcClients");
+const { authenticateToken, authorizeRoles } = require("../middleware");
 
 const router = express.Router();
 
@@ -82,12 +82,10 @@ router.get(
       });
       res.json(response);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          success: false,
-          message: "Error al obtener órdenes del restaurante",
-        });
+      res.status(500).json({
+        success: false,
+        message: "Error al obtener órdenes del restaurante",
+      });
     }
   },
 );

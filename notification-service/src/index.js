@@ -4,7 +4,7 @@ const protoLoader = require("@grpc/proto-loader");
 const path = require("path");
 const handlers = require("./handlers");
 
-const PROTO_PATH = path.join(__dirname, "../../proto/notification.proto");
+const PROTO_PATH = path.join(__dirname, "proto/notification.proto");
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
