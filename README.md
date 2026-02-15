@@ -65,6 +65,34 @@ La aplicación está compuesta por **6 microservicios** independientes, cada uno
 | **Nube** | Google Cloud Platform (GCP) |
 | **Email** | Nodemailer (SMTP) |
 
+## ☁️ Despliegue en GCP
+
+La aplicación está desplegada en **Google Cloud Platform** usando una instancia de **Compute Engine**.
+
+| Recurso | Detalle |
+|---------|---------|
+| **Proyecto GCP** | `usac-sa-201346084` |
+| **VM** | `delivereats-vm` |
+| **Zona** | `us-central1-a` |
+| **Tipo de máquina** | `e2-medium` (2 vCPU, 4 GB RAM) |
+| **SO** | Ubuntu 22.04 LTS |
+| **IP externa** | `34.57.204.245` |
+
+### URLs en Producción
+| Servicio | URL |
+|----------|-----|
+| 🌐 **Frontend** | http://34.57.204.245:5173 |
+| 🔌 **API Gateway** | http://34.57.204.245:3000/api |
+
+### Pasos del despliegue
+1. Se creó un proyecto en GCP (`usac-sa-201346084`) con billing habilitado
+2. Se habilitó la API de Compute Engine
+3. Se creó una VM `e2-medium` con Ubuntu 22.04 y Docker preinstalado (via startup-script)
+4. Se configuraron reglas de firewall para puertos 80, 3000 y 5173
+5. Se copió el proyecto completo a la VM via `gcloud compute scp`
+6. Se ejecutó `docker compose build && docker compose up -d` en la VM
+7. Los 7 contenedores corren en la VM, cada microservicio con su BD PostgreSQL embebida
+
 ## 📦 Microservicios
 
 ### 1. API Gateway (Puerto 3000)
@@ -109,14 +137,168 @@ La aplicación está compuesta por **6 microservicios** independientes, cada uno
 
 ## 🗄️ Bases de Datos
 
-Cada microservicio tiene su propia base de datos PostgreSQL (independiente):
+Cada microservicio tiene su **propia base de datos PostgreSQL embebida** dentro de su contenedor (independiente). No existen contenedores separados de BD.
 
-| Servicio | Base de Datos | Puerto Local |
-|----------|--------------|-------------|
-| Auth Service | auth_db | 5441 |
-| Restaurant Catalog | restaurant_db | 5442 |
-| Order Service | order_db | 5443 |
-| Delivery Service | delivery_db | 5444 |
+| Servicio | Base de Datos | Motor |
+|----------|--------------|-------|
+| Auth Service | `auth_db` | PostgreSQL 15 (embebida) |
+| Restaurant Catalog | `restaurant_db` | PostgreSQL 15 (embebida) |
+| Order Service | `order_db` | PostgreSQL 15 (embebida) |
+| Delivery Service | `delivery_db` | PostgreSQL 15 (embebida) |
+
+### Esquema: `auth_db`
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,        -- bcrypt hash
+  name VARCHAR(255) NOT NULL,
+  role VARCHAR(50) NOT NULL,             -- CLIENTE | RESTAURANTE | REPARTIDOR | ADMINISTRADOR
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Esquema: `restaurant_db`
+```sql
+CREATE TABLE restaurants (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  address VARCHAR(500),
+  phone VARCHAR(50),
+  schedule VARCHAR(255),
+  food_type VARCHAR(100),
+  owner_id INTEGER NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE menu_items (
+  id SERIAL PRIMARY KEY,
+  restaurant_id INTEGER REFERENCES restaurants(id) ON DELETE CASCADE,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  price DECIMAL(10, 2) NOT NULL,
+  available BOOLEAN DEFAULT true,
+  category VARCHAR(100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Esquema: `order_db`
+```sql
+CREATE TABLE orders (
+  id SERIAL PRIMARY KEY,
+  client_id INTEGER NOT NULL,
+  client_name VARCHAR(255),
+  client_email VARCHAR(255),
+  restaurant_id INTEGER NOT NULL,
+  restaurant_name VARCHAR(255),
+  total DECIMAL(10, 2) DEFAULT 0,
+  status VARCHAR(50) DEFAULT 'CREADA',   -- CREADA | EN_PROCESO | LISTA | EN_CAMINO | ENTREGADA | CANCELADA | RECHAZADA
+  delivery_address TEXT,
+  delivery_person_id INTEGER,
+  delivery_person_name VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE order_items (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+  menu_item_id INTEGER,
+  name VARCHAR(255),
+  quantity INTEGER DEFAULT 1,
+  price DECIMAL(10, 2)
+);
+```
+
+### Esquema: `delivery_db`
+```sql
+CREATE TABLE deliveries (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER UNIQUE NOT NULL,
+  delivery_person_id INTEGER NOT NULL,
+  delivery_person_name VARCHAR(255),
+  status VARCHAR(50) DEFAULT 'EN_CAMINO',  -- EN_CAMINO | ENTREGADA | CANCELADA
+  accepted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  delivered_at TIMESTAMP
+);
+```
+
+## 📡 Comunicación gRPC (Protobuf)
+
+Cada microservicio tiene sus propios archivos `.proto` dentro de su directorio `src/proto/`.
+
+### `auth.proto` — AuthService
+| RPC | Request | Response | Descripción |
+|-----|---------|----------|-------------|
+| `Register` | email, password, role, name | success, message, user_id | Registro de usuario |
+| `Login` | email, password | success, token, message | Inicio de sesión + JWT |
+| `ValidateToken` | token | valid, user_id, email, role, name | Validar JWT |
+
+### `restaurant.proto` — RestaurantCatalogService
+| RPC | Request | Response | Descripción |
+|-----|---------|----------|-------------|
+| `CreateRestaurant` | name, address, phone, ... | restaurant | Crear restaurante |
+| `GetRestaurant` | id | restaurant | Obtener restaurante |
+| `ListRestaurants` | — | restaurants[] | Listar todos |
+| `UpdateRestaurant` | id, name, address, ... | restaurant | Actualizar |
+| `DeleteRestaurant` | id | success, message | Eliminar |
+| `CreateMenuItem` | restaurant_id, name, price, ... | item | Crear producto |
+| `ListMenuItems` | restaurant_id | items[] | Listar menú |
+| `UpdateMenuItem` | id, name, price, ... | item | Actualizar producto |
+| `DeleteMenuItem` | id | success, message | Eliminar producto |
+
+### `order.proto` — OrderService
+| RPC | Request | Response | Descripción |
+|-----|---------|----------|-------------|
+| `CreateOrder` | client_id, restaurant_id, items[], ... | order | Crear orden |
+| `GetOrder` | id | order | Detalle de orden |
+| `ListOrdersByClient` | client_id | orders[] | Órdenes del cliente |
+| `ListOrdersByRestaurant` | restaurant_id | orders[] | Órdenes del restaurante |
+| `ListReadyOrders` | — | orders[] | Órdenes listas para entrega |
+| `UpdateOrderStatus` | id, status, ... | order | Actualizar estado |
+| `CancelOrder` | id, reason | order | Cancelar orden |
+
+### `delivery.proto` — DeliveryService
+| RPC | Request | Response | Descripción |
+|-----|---------|----------|-------------|
+| `AcceptOrder` | order_id, delivery_person_id, ... | delivery | Aceptar pedido |
+| `UpdateDeliveryStatus` | order_id, status, reason | delivery | Actualizar entrega |
+| `GetDeliveryByOrder` | order_id | delivery | Consultar entrega |
+| `ListAvailableOrders` | — | orders[] | Órdenes disponibles |
+| `ListMyDeliveries` | delivery_person_id | deliveries[] | Mis entregas |
+
+### `notification.proto` — NotificationService
+| RPC | Request | Response | Descripción |
+|-----|---------|----------|-------------|
+| `NotifyOrderCreated` | order info | success | Correo: orden creada |
+| `NotifyCancelledByClient` | order info | success | Correo: cancelada por cliente |
+| `NotifyOrderInRoute` | order + delivery info | success | Correo: en camino |
+| `NotifyCancelledByRestaurant` | order + reason | success | Correo: cancelada por restaurante |
+| `NotifyCancelledByDelivery` | order + reason | success | Correo: cancelada por repartidor |
+| `NotifyOrderRejected` | order + reason | success | Correo: orden rechazada |
+
+## 🔐 Autenticación y Autorización
+
+- **JWT** generado en el Auth Service al hacer login
+- El **API Gateway** valida el token en cada request protegido
+- Autorización basada en **roles**: CLIENTE, RESTAURANTE, REPARTIDOR, ADMINISTRADOR
+- Contraseñas almacenadas con **bcrypt** (hash + salt)
+- Token incluye: `id`, `email`, `role`, `name`, `iat`, `exp` (24h)
+
+## 🔧 Decisiones Técnicas
+
+1. **PostgreSQL embebido**: Cada microservicio incluye PostgreSQL dentro de su contenedor Docker. Esto garantiza total independencia de BD sin contenedores adicionales.
+
+2. **gRPC para comunicación interna**: Se eligió gRPC sobre REST para la comunicación entre microservicios por su eficiencia, contratos estrictos (protobuf) y tipado fuerte.
+
+3. **REST para el frontend**: El API Gateway expone endpoints REST que el frontend consume con Axios. Esto simplifica la integración con React.
+
+4. **Node.js para todos los servicios**: Se usó un stack homogéneo (Node.js + Express) para reducir la complejidad operativa y facilitar el mantenimiento.
+
+5. **Docker multi-stage para frontend**: El frontend se construye con Vite y se sirve con Nginx, resultando en una imagen ligera de ~25MB.
+
+6. **GCP Compute Engine**: Se eligió una VM sobre Cloud Run o GKE por simplicidad de despliegue con Docker Compose, manteniendo la misma configuración local y en producción.
 
 ## 🚀 Cómo Ejecutar
 
@@ -201,39 +383,84 @@ SA_PROYECTO_201346084/
 ├── docker-compose.yml
 ├── .gitignore
 ├── README.md
-├── proto/                    # Definiciones gRPC compartidas
+├── proto/                          # Protos originales (referencia)
 │   ├── auth.proto
 │   ├── restaurant.proto
 │   ├── order.proto
 │   ├── delivery.proto
 │   └── notification.proto
-├── api-gateway/              # API Gateway (REST → gRPC)
+├── api-gateway/                    # API Gateway (REST → gRPC)
 │   ├── Dockerfile
 │   ├── package.json
 │   └── src/
-├── auth-service/             # Servicio de autenticación
+│       ├── index.js
+│       ├── grpcClients.js
+│       ├── middleware.js
+│       ├── proto/                  # Copias locales de .proto
+│       └── routes/
+│           ├── auth.js
+│           ├── restaurants.js
+│           ├── orders.js
+│           └── delivery.js
+├── auth-service/                   # Servicio de autenticación + BD embebida
+│   ├── Dockerfile
+│   ├── entrypoint.sh              # Inicia PostgreSQL + Node.js
+│   ├── package.json
+│   └── src/
+│       ├── index.js
+│       ├── db.js
+│       └── proto/auth.proto
+├── restaurant-catalog-service/     # Catálogo + BD embebida
+│   ├── Dockerfile
+│   ├── entrypoint.sh
+│   ├── package.json
+│   └── src/
+│       ├── index.js
+│       ├── db.js
+│       └── proto/restaurant.proto
+├── order-service/                  # Órdenes + BD embebida
+│   ├── Dockerfile
+│   ├── entrypoint.sh
+│   ├── package.json
+│   └── src/
+│       ├── index.js
+│       ├── db.js
+│       └── proto/order.proto
+├── delivery-service/               # Entregas + BD embebida
+│   ├── Dockerfile
+│   ├── entrypoint.sh
+│   ├── package.json
+│   └── src/
+│       ├── index.js
+│       ├── db.js
+│       └── proto/
+│           ├── delivery.proto
+│           └── order.proto         # Cliente gRPC a order-service
+├── notification-service/           # Notificaciones (sin BD)
 │   ├── Dockerfile
 │   ├── package.json
 │   └── src/
-├── restaurant-catalog-service/ # Catálogo de restaurantes
-│   ├── Dockerfile
-│   ├── package.json
-│   └── src/
-├── order-service/            # Gestión de órdenes
-│   ├── Dockerfile
-│   ├── package.json
-│   └── src/
-├── delivery-service/         # Gestión de entregas
-│   ├── Dockerfile
-│   ├── package.json
-│   └── src/
-├── notification-service/     # Notificaciones por email
-│   ├── Dockerfile
-│   ├── package.json
-│   └── src/
-└── frontend/                 # Aplicación React
+│       ├── index.js
+│       └── proto/notification.proto
+└── frontend/                       # React 18 + Vite + Nginx
     ├── Dockerfile
     ├── nginx.conf
     ├── package.json
     └── src/
+        ├── App.jsx
+        ├── main.jsx
+        ├── index.css
+        ├── utils/validators.js     # Validaciones de formulario
+        ├── components/FieldError.jsx
+        ├── services/api.js
+        └── pages/
+            ├── Login.jsx
+            ├── Register.jsx
+            ├── ClientDashboard.jsx
+            ├── RestaurantDashboard.jsx
+            ├── DeliveryDashboard.jsx
+            ├── AdminDashboard.jsx
+            ├── RestaurantMenu.jsx
+            ├── CreateOrder.jsx
+            └── MyOrders.jsx
 ```
