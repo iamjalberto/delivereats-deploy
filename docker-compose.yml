@@ -78,8 +78,8 @@ services:
       PORT: 50055
       SMTP_HOST: smtp.gmail.com
       SMTP_PORT: 587
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_USER: ${SMTP_USER:-jalbertochigua@gmail.com}
+      SMTP_PASS: ${SMTP_PASS:-xyjd snzf dgsh ptls}
     ports:
       - "50055:50055"
 
