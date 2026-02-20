@@ -25,6 +25,15 @@ const RestaurantDashboard = () => {
   });
   const [menuErrors, setMenuErrors] = useState({});
   const [editingItem, setEditingItem] = useState(null);
+  const [showCreateRestaurant, setShowCreateRestaurant] = useState(false);
+  const [restaurantForm, setRestaurantForm] = useState({
+    name: "",
+    address: "",
+    phone: "",
+    schedule: "",
+    food_type: "",
+  });
+  const [restaurantErrors, setRestaurantErrors] = useState({});
 
   useEffect(() => {
     fetchRestaurants();
@@ -165,11 +174,125 @@ const RestaurantDashboard = () => {
     setShowMenuForm(true);
   };
 
+  const handleCreateRestaurant = async (e) => {
+    e.preventDefault();
+    const result = runValidations({
+      name: validateRequired(restaurantForm.name, "El nombre"),
+      address: validateRequired(restaurantForm.address, "La dirección"),
+    });
+    setRestaurantErrors(result.errors);
+    if (!result.valid) return;
+
+    try {
+      await api.post("/restaurants", restaurantForm);
+      toast.success("Restaurante creado exitosamente");
+      setShowCreateRestaurant(false);
+      setRestaurantForm({
+        name: "",
+        address: "",
+        phone: "",
+        schedule: "",
+        food_type: "",
+      });
+      setRestaurantErrors({});
+      fetchRestaurants();
+    } catch (error) {
+      toast.error("Error al crear restaurante");
+    }
+  };
+
   if (!selectedRestaurant) {
     return (
       <div className="empty-state">
         <span>🏪</span>
-        <p>No tienes restaurantes asignados. Contacta al administrador.</p>
+        <p>No tienes restaurantes asignados.</p>
+        <button
+          className="btn btn-primary"
+          style={{ marginTop: "1rem" }}
+          onClick={() => setShowCreateRestaurant(!showCreateRestaurant)}
+        >
+          {showCreateRestaurant ? "Cerrar" : "+ Crear Mi Restaurante"}
+        </button>
+        {showCreateRestaurant && (
+          <form
+            onSubmit={handleCreateRestaurant}
+            className="card"
+            style={{ maxWidth: "500px", marginTop: "1rem", textAlign: "left" }}
+            noValidate
+          >
+            <div className="form-group">
+              <label>Nombre *</label>
+              <input
+                value={restaurantForm.name}
+                onChange={(e) => {
+                  setRestaurantForm({
+                    ...restaurantForm,
+                    name: e.target.value,
+                  });
+                  setRestaurantErrors({ ...restaurantErrors, name: null });
+                }}
+                className={restaurantErrors.name ? "input-error" : ""}
+              />
+              <FieldError error={restaurantErrors.name} />
+            </div>
+            <div className="form-group">
+              <label>Dirección *</label>
+              <input
+                value={restaurantForm.address}
+                onChange={(e) => {
+                  setRestaurantForm({
+                    ...restaurantForm,
+                    address: e.target.value,
+                  });
+                  setRestaurantErrors({ ...restaurantErrors, address: null });
+                }}
+                className={restaurantErrors.address ? "input-error" : ""}
+              />
+              <FieldError error={restaurantErrors.address} />
+            </div>
+            <div className="form-group">
+              <label>Teléfono</label>
+              <input
+                value={restaurantForm.phone}
+                onChange={(e) =>
+                  setRestaurantForm({
+                    ...restaurantForm,
+                    phone: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <div className="form-group">
+              <label>Horario</label>
+              <input
+                value={restaurantForm.schedule}
+                onChange={(e) =>
+                  setRestaurantForm({
+                    ...restaurantForm,
+                    schedule: e.target.value,
+                  })
+                }
+                placeholder="8:00 - 20:00"
+              />
+            </div>
+            <div className="form-group">
+              <label>Tipo de Comida</label>
+              <input
+                value={restaurantForm.food_type}
+                onChange={(e) =>
+                  setRestaurantForm({
+                    ...restaurantForm,
+                    food_type: e.target.value,
+                  })
+                }
+                placeholder="Mexicana, Italiana..."
+              />
+            </div>
+            <button type="submit" className="btn btn-primary">
+              Crear Restaurante
+            </button>
+          </form>
+        )}
       </div>
     );
   }

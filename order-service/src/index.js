@@ -30,6 +30,7 @@ const startServer = async () => {
     ListReadyOrders: handlers.listReadyOrders,
     UpdateOrderStatus: handlers.updateOrderStatus,
     CancelOrder: handlers.cancelOrder,
+    ListAllOrders: handlers.listAllOrders,
   });
 
   const port = process.env.PORT || "50053";

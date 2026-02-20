@@ -3,7 +3,7 @@ const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
 const path = require("path");
 const { initDB } = require("./db");
-const { register, login, validateToken } = require("./handlers");
+const { register, login, validateToken, listUsers } = require("./handlers");
 
 const PROTO_PATH = path.join(__dirname, "proto/auth.proto");
 
@@ -26,6 +26,7 @@ const startServer = async () => {
     Register: register,
     Login: login,
     ValidateToken: validateToken,
+    ListUsers: listUsers,
   });
 
   const port = process.env.PORT || "50051";

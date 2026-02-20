@@ -51,6 +51,26 @@ router.post(
   },
 );
 
+// GET /api/orders/all - Todas las órdenes (ADMINISTRADOR)
+router.get(
+  "/all",
+  authenticateToken,
+  authorizeRoles("ADMINISTRADOR"),
+  async (req, res) => {
+    try {
+      const response = await grpcCall(orderClient, "ListAllOrders", {});
+      res.json(response);
+    } catch (error) {
+      res
+        .status(500)
+        .json({
+          success: false,
+          message: "Error al obtener todas las órdenes",
+        });
+    }
+  },
+);
+
 // GET /api/orders/my - Mis órdenes (CLIENTE)
 router.get(
   "/my",

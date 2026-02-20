@@ -10,7 +10,10 @@ service OrderService {
   rpc ListReadyOrders (ListReadyOrdersRequest) returns (ListOrdersResponse);
   rpc UpdateOrderStatus (UpdateOrderStatusRequest) returns (OrderResponse);
   rpc CancelOrder (CancelOrderRequest) returns (OrderResponse);
+  rpc ListAllOrders (ListAllOrdersRequest) returns (ListOrdersResponse);
 }
+
+message ListAllOrdersRequest {}
 
 message CreateOrderRequest {
   int32 client_id = 1;

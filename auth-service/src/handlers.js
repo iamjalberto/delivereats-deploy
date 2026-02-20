@@ -120,4 +120,23 @@ const validateToken = async (call, callback) => {
   }
 };
 
-module.exports = { register, login, validateToken };
+const listUsers = async (call, callback) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, email, name, role, created_at FROM users ORDER BY created_at DESC",
+    );
+    const users = result.rows.map((u) => ({
+      id: u.id,
+      email: u.email,
+      name: u.name,
+      role: u.role,
+      created_at: u.created_at ? u.created_at.toISOString() : "",
+    }));
+    callback(null, { users });
+  } catch (error) {
+    console.error("[Auth-Service] ListUsers error:", error);
+    callback(null, { users: [] });
+  }
+};
+
+module.exports = { register, login, validateToken, listUsers };

@@ -1,7 +1,26 @@
 const express = require("express");
 const { authClient, grpcCall } = require("../grpcClients");
+const { authenticateToken, authorizeRoles } = require("../middleware");
 
 const router = express.Router();
+
+// GET /api/auth/users - Listar usuarios (ADMINISTRADOR)
+router.get(
+  "/users",
+  authenticateToken,
+  authorizeRoles("ADMINISTRADOR"),
+  async (req, res) => {
+    try {
+      const response = await grpcCall(authClient, "ListUsers", {});
+      res.json(response);
+    } catch (error) {
+      console.error("[API-Gateway] ListUsers error:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "Error al obtener usuarios" });
+    }
+  },
+);
 
 // POST /api/auth/register
 router.post("/register", async (req, res) => {

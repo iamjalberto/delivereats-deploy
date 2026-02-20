@@ -171,10 +171,39 @@ const listReadyOrders = async (call, callback) => {
   }
 };
 
+const VALID_TRANSITIONS = {
+  CREADA: ["EN_PROCESO", "CANCELADA", "RECHAZADA"],
+  EN_PROCESO: ["LISTA", "CANCELADA"],
+  LISTA: ["EN_CAMINO", "CANCELADA"],
+  EN_CAMINO: ["ENTREGADA", "CANCELADA"],
+};
+
 const updateOrderStatus = async (call, callback) => {
   try {
     const { id, status, updated_by, updated_by_role, updated_by_name } =
       call.request;
+
+    // Validar transición de estado
+    const current = await pool.query(
+      "SELECT status FROM orders WHERE id = $1",
+      [id],
+    );
+    if (current.rows.length === 0) {
+      return callback(null, {
+        success: false,
+        message: "Orden no encontrada",
+        order: null,
+      });
+    }
+    const currentStatus = current.rows[0].status;
+    const allowed = VALID_TRANSITIONS[currentStatus] || [];
+    if (!allowed.includes(status)) {
+      return callback(null, {
+        success: false,
+        message: `No se puede cambiar de ${currentStatus} a ${status}`,
+        order: null,
+      });
+    }
 
     const updateFields = ["status = $1", "updated_at = NOW()"];
     const values = [status, id];
@@ -250,6 +279,22 @@ const cancelOrder = async (call, callback) => {
   }
 };
 
+const listAllOrders = async (call, callback) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM orders ORDER BY created_at DESC",
+    );
+    const orders = [];
+    for (const row of result.rows) {
+      const items = await getOrderItems(row.id);
+      orders.push(buildOrderFromRow(row, items));
+    }
+    callback(null, { orders });
+  } catch (error) {
+    callback(null, { orders: [] });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrder,
@@ -258,4 +303,5 @@ module.exports = {
   listReadyOrders,
   updateOrderStatus,
   cancelOrder,
+  listAllOrders,
 };

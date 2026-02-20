@@ -30,21 +30,24 @@ router.get("/:id", authenticateToken, async (req, res) => {
   }
 });
 
-// POST /api/restaurants - Crear restaurante (ADMINISTRADOR)
+// POST /api/restaurants - Crear restaurante (ADMINISTRADOR o RESTAURANTE)
 router.post(
   "/",
   authenticateToken,
-  authorizeRoles("ADMINISTRADOR"),
+  authorizeRoles("ADMINISTRADOR", "RESTAURANTE"),
   async (req, res) => {
     try {
-      const { name, address, phone, schedule, food_type } = req.body;
+      const { name, address, phone, schedule, food_type, owner_id } = req.body;
       const response = await grpcCall(restaurantClient, "CreateRestaurant", {
         name,
         address,
         phone,
         schedule,
         food_type,
-        owner_id: req.user.id,
+        owner_id:
+          req.user.role === "ADMINISTRADOR" && owner_id
+            ? parseInt(owner_id)
+            : req.user.id,
       });
       res.status(201).json(response);
     } catch (error) {
