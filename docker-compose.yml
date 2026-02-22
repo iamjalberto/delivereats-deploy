@@ -30,6 +30,10 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: restaurant_db
+      RABBITMQ_URL: amqp://delivereats:delivereats2026@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     ports:
       - "50052:50052"
     volumes:
@@ -46,6 +50,10 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: order_db
+      RABBITMQ_URL: amqp://delivereats:delivereats2026@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     ports:
       - "50053:50053"
     volumes:
@@ -117,6 +125,23 @@ services:
     volumes:
       - payment-db-data:/var/lib/postgresql/data
 
+  # ==================== RABBITMQ (Cola de Pedidos) ====================
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: delivereats
+      RABBITMQ_DEFAULT_PASS: delivereats2026
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ==================== P5: REDIS (Cache para FX) ====================
   redis:
     image: redis:7-alpine
@@ -168,4 +193,5 @@ volumes:
   delivery-db-data:
   payment-db-data:
   redis-data:
+  rabbitmq-data:
   evidence-uploads:

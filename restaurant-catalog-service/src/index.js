@@ -18,8 +18,11 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 const restaurantProto =
   grpc.loadPackageDefinition(packageDefinition).restaurant;
 
+const { connectWithRetry: connectRabbitMQ } = require("./queue");
+
 const startServer = async () => {
   await initDB();
+  await connectRabbitMQ();
 
   const server = new grpc.Server();
 

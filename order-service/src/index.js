@@ -4,8 +4,10 @@ const protoLoader = require("@grpc/proto-loader");
 const path = require("path");
 const { initDB } = require("./db");
 const handlers = require("./handlers");
+const ratingHandlers = require("./ratingHandlers");
 
 const PROTO_PATH = path.join(__dirname, "proto/order.proto");
+const RATING_PROTO_PATH = path.join(__dirname, "proto/rating.proto");
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
@@ -17,8 +19,20 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 
 const orderProto = grpc.loadPackageDefinition(packageDefinition).order;
 
+const ratingPackageDef = protoLoader.loadSync(RATING_PROTO_PATH, {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true,
+});
+const ratingProto = grpc.loadPackageDefinition(ratingPackageDef).rating;
+
+const { connectWithRetry: connectRabbitMQ } = require("./queue");
+
 const startServer = async () => {
   await initDB();
+  await connectRabbitMQ();
 
   const server = new grpc.Server();
 
@@ -31,6 +45,14 @@ const startServer = async () => {
     UpdateOrderStatus: handlers.updateOrderStatus,
     CancelOrder: handlers.cancelOrder,
     ListAllOrders: handlers.listAllOrders,
+  });
+
+  server.addService(ratingProto.RatingService.service, {
+    CreateRating: ratingHandlers.createRating,
+    GetRatingsByRestaurant: ratingHandlers.getRatingsByRestaurant,
+    GetRatingsByDelivery: ratingHandlers.getRatingsByDelivery,
+    GetRatingsByProduct: ratingHandlers.getRatingsByProduct,
+    GetAverageRating: ratingHandlers.getAverageRating,
   });
 
   const port = process.env.PORT || "50053";

@@ -1,4 +1,5 @@
 const { pool } = require("./db");
+const { publishNewOrder, publishOrderCancelled } = require("./queue");
 
 const buildOrderFromRow = (row, items) => ({
   id: row.id,
@@ -79,10 +80,15 @@ const createOrder = async (call, callback) => {
     await client.query("COMMIT");
 
     const orderItems = await getOrderItems(order.id);
+    const builtOrder = buildOrderFromRow(order, orderItems);
+
+    // Publicar en cola RabbitMQ para que Restaurant-Service lo consuma
+    await publishNewOrder(builtOrder);
+
     callback(null, {
       success: true,
       message: "Orden creada exitosamente",
-      order: buildOrderFromRow(order, orderItems),
+      order: builtOrder,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -172,7 +178,8 @@ const listReadyOrders = async (call, callback) => {
 };
 
 const VALID_TRANSITIONS = {
-  CREADA: ["EN_PROCESO", "CANCELADA", "RECHAZADA"],
+  CREADA: ["EN_PROCESO", "CANCELADA", "RECHAZADA", "PAGADA"],
+  PAGADA: ["EN_PROCESO", "CANCELADA", "RECHAZADA"],
   EN_PROCESO: ["LISTA", "CANCELADA"],
   LISTA: ["EN_CAMINO", "CANCELADA"],
   EN_CAMINO: ["ENTREGADA", "CANCELADA"],
@@ -265,10 +272,15 @@ const cancelOrder = async (call, callback) => {
     }
 
     const items = await getOrderItems(id);
+    const builtOrder = buildOrderFromRow(result.rows[0], items);
+
+    // Publicar cancelación en cola RabbitMQ
+    await publishOrderCancelled(builtOrder, cancelled_by_role, reason);
+
     callback(null, {
       success: true,
       message: `Orden ${status.toLowerCase()} por ${cancelled_by_role}`,
-      order: buildOrderFromRow(result.rows[0], items),
+      order: builtOrder,
     });
   } catch (error) {
     callback(null, {
