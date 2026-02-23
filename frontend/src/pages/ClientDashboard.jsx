@@ -17,7 +17,10 @@ const ClientDashboard = () => {
       const res = await api.get("/restaurants");
       setRestaurants(res.data.restaurants || []);
     } catch (error) {
-      toast.error("Error al cargar restaurantes");
+      const msg =
+        error.response?.data?.message ||
+        "Error al cargar restaurantes. Verifica tu conexión.";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

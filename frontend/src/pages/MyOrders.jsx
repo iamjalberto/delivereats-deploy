@@ -15,7 +15,10 @@ const MyOrders = () => {
       const res = await api.get("/orders/my");
       setOrders(res.data.orders || []);
     } catch (error) {
-      toast.error("Error al cargar órdenes");
+      const msg =
+        error.response?.data?.message ||
+        "Error al cargar órdenes. Verifica tu conexión.";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -32,7 +35,8 @@ const MyOrders = () => {
         fetchOrders();
       }
     } catch (error) {
-      toast.error("Error al cancelar orden");
+      const msg = error.response?.data?.message || "Error al cancelar orden.";
+      toast.error(msg);
     }
   };
 

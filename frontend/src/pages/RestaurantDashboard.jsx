@@ -55,7 +55,10 @@ const RestaurantDashboard = () => {
       setRestaurants(myRestaurants);
       if (myRestaurants.length > 0) setSelectedRestaurant(myRestaurants[0]);
     } catch (error) {
-      toast.error("Error al cargar restaurantes");
+      const msg =
+        error.response?.data?.message ||
+        "Error al cargar restaurantes. Verifica tu conexión.";
+      toast.error(msg);
     }
   };
 
@@ -64,7 +67,10 @@ const RestaurantDashboard = () => {
       const res = await api.get(`/orders/restaurant/${selectedRestaurant.id}`);
       setOrders(res.data.orders || []);
     } catch (error) {
-      console.error("Error fetching orders");
+      const msg =
+        error.response?.data?.message ||
+        "Error al cargar órdenes del restaurante.";
+      toast.error(msg);
     }
   };
 
@@ -73,7 +79,10 @@ const RestaurantDashboard = () => {
       const res = await api.get(`/restaurants/${selectedRestaurant.id}/menu`);
       setMenuItems(res.data.items || []);
     } catch (error) {
-      console.error("Error fetching menu");
+      const msg =
+        error.response?.data?.message ||
+        "Error al cargar el menú del restaurante.";
+      toast.error(msg);
     }
   };
 
@@ -83,7 +92,8 @@ const RestaurantDashboard = () => {
       toast.success(`Orden actualizada a ${status}`);
       fetchOrders();
     } catch (error) {
-      toast.error("Error al actualizar orden");
+      const msg = error.response?.data?.message || "Error al actualizar orden.";
+      toast.error(msg);
     }
   };
 
@@ -95,7 +105,8 @@ const RestaurantDashboard = () => {
       toast.success("Orden rechazada");
       fetchOrders();
     } catch (error) {
-      toast.error("Error al rechazar orden");
+      const msg = error.response?.data?.message || "Error al rechazar orden.";
+      toast.error(msg);
     }
   };
 
@@ -107,7 +118,8 @@ const RestaurantDashboard = () => {
       toast.success("Orden cancelada");
       fetchOrders();
     } catch (error) {
-      toast.error("Error al cancelar orden");
+      const msg = error.response?.data?.message || "Error al cancelar orden.";
+      toast.error(msg);
     }
   };
 
@@ -147,7 +159,8 @@ const RestaurantDashboard = () => {
       setMenuErrors({});
       fetchMenu();
     } catch (error) {
-      toast.error("Error al guardar producto");
+      const msg = error.response?.data?.message || "Error al guardar producto.";
+      toast.error(msg);
     }
   };
 
@@ -158,7 +171,9 @@ const RestaurantDashboard = () => {
       toast.success("Producto eliminado");
       fetchMenu();
     } catch (error) {
-      toast.error("Error al eliminar");
+      const msg =
+        error.response?.data?.message || "Error al eliminar producto.";
+      toast.error(msg);
     }
   };
 
@@ -197,7 +212,9 @@ const RestaurantDashboard = () => {
       setRestaurantErrors({});
       fetchRestaurants();
     } catch (error) {
-      toast.error("Error al crear restaurante");
+      const msg =
+        error.response?.data?.message || "Error al crear restaurante.";
+      toast.error(msg);
     }
   };
 

@@ -22,7 +22,10 @@ const RestaurantMenu = () => {
       setRestaurant(resR.data.restaurant);
       setMenuItems(resM.data.items || []);
     } catch (error) {
-      toast.error("Error al cargar menú");
+      const msg =
+        error.response?.data?.message ||
+        "Error al cargar menú. Verifica tu conexión.";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

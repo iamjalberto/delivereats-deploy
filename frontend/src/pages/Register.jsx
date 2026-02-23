@@ -58,7 +58,10 @@ const Register = () => {
         toast.error(result.message);
       }
     } catch (error) {
-      toast.error("Error al registrarse");
+      const msg =
+        error.response?.data?.message ||
+        "Error al registrarse. Verifica tu conexión.";
+      toast.error(msg);
     }
   };
 

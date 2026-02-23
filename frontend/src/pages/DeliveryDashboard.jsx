@@ -23,7 +23,10 @@ const DeliveryDashboard = () => {
       setAvailableOrders(available.data.orders || []);
       setMyDeliveries(mine.data.deliveries || []);
     } catch (error) {
-      console.error("Error fetching delivery data");
+      const msg =
+        error.response?.data?.message ||
+        "Error al cargar datos de entregas. Verifica tu conexión.";
+      toast.error(msg);
     }
   };
 
@@ -37,7 +40,10 @@ const DeliveryDashboard = () => {
         toast.error(res.data.message);
       }
     } catch (error) {
-      toast.error("Error al aceptar pedido");
+      const msg =
+        error.response?.data?.message ||
+        "Error al aceptar pedido. Verifica tu conexión.";
+      toast.error(msg);
     }
   };
 
@@ -57,7 +63,10 @@ const DeliveryDashboard = () => {
         fetchData();
       }
     } catch (error) {
-      toast.error("Error al actualizar estado");
+      const msg =
+        error.response?.data?.message ||
+        "Error al actualizar estado de la entrega.";
+      toast.error(msg);
     }
   };
 

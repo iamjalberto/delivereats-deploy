@@ -28,7 +28,10 @@ const CreateOrder = () => {
       setRestaurant(resR.data.restaurant);
       setMenuItems((resM.data.items || []).filter((i) => i.available));
     } catch (error) {
-      toast.error("Error al cargar datos");
+      const msg =
+        error.response?.data?.message ||
+        "Error al cargar datos del restaurante. Verifica tu conexión.";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -97,7 +100,10 @@ const CreateOrder = () => {
         toast.error(res.data.message);
       }
     } catch (error) {
-      toast.error("Error al crear orden");
+      const msg =
+        error.response?.data?.message ||
+        "Error al crear orden. Verifica tu conexión.";
+      toast.error(msg);
     }
   };
 

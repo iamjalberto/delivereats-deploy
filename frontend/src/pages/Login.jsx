@@ -33,7 +33,10 @@ const Login = () => {
         toast.error(result.message);
       }
     } catch (error) {
-      toast.error("Error al iniciar sesión");
+      const msg =
+        error.response?.data?.message ||
+        "Error al iniciar sesión. Verifica tu conexión.";
+      toast.error(msg);
     }
   };
 

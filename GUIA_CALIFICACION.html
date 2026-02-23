@@ -1,0 +1,735 @@
+<!DOCTYPE html><html><head>
+      <title>GUIA_CALIFICACION</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:////home/jose/.vscode/extensions/shd101wyy.markdown-preview-enhanced-0.8.20/crossnote/dependencies/katex/katex.min.css">
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <!-- The content below will be included at the end of the <head> element. --><script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script></head><body for="html-export">
+    
+    
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="-guía-de-calificación--delivereats-fase-1">🎯 GUÍA DE CALIFICACIÓN — Delivereats Fase 1 </h1>
+<p><strong>Estudiante:</strong> José Alberto Alarcón Chigua<br>
+<strong>Carné:</strong> 201346084<br>
+<strong>Repo:</strong> <a href="https://github.com/iamjalberto/SA_PROYECTO_201346084">https://github.com/iamjalberto/SA_PROYECTO_201346084</a><br>
+<strong>Tag:</strong> <code>v1.0.0</code></p>
+<hr>
+<h2 id="-urls-de-producción-gcp">📌 URLs de Producción (GCP) </h2>
+<table>
+<thead>
+<tr>
+<th>Servicio</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🌐 Frontend</td>
+<td><a href="http://34.57.204.245:5173">http://34.57.204.245:5173</a></td>
+</tr>
+<tr>
+<td>🔌 API Gateway</td>
+<td><a href="http://34.57.204.245:3000/api">http://34.57.204.245:3000/api</a></td>
+</tr>
+<tr>
+<td>❤️ Health Check</td>
+<td><a href="http://34.57.204.245:3000/api/health">http://34.57.204.245:3000/api/health</a></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="-credenciales-de-prueba">🔑 Credenciales de Prueba </h2>
+<table>
+<thead>
+<tr>
+<th>Rol</th>
+<th>Email</th>
+<th>Contraseña</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CLIENTE</td>
+<td><code>iam@jalber.to</code></td>
+<td><code>Test123456</code></td>
+</tr>
+<tr>
+<td>RESTAURANTE</td>
+<td><code>rest_owner@test.com</code></td>
+<td><code>Rest123456</code></td>
+</tr>
+<tr>
+<td>REPARTIDOR</td>
+<td><code>rep_test@test.com</code></td>
+<td><code>Rep123456</code></td>
+</tr>
+<tr>
+<td>ADMINISTRADOR</td>
+<td><code>admin_smtp@test.com</code></td>
+<td><code>Admin123456</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="️-conexión-a-bases-de-datos-dbeaver">�️ Conexión a Bases de Datos (DBeaver) </h2>
+<blockquote>
+<p>Cada microservicio tiene PostgreSQL <strong>embebido</strong> en su contenedor. Los puertos están expuestos <strong>solo dentro de Docker</strong> (<code>localhost:5432</code> dentro de cada contenedor). Para conectar desde DBeaver, usa la <strong>IP de GCP</strong> con los puertos del contenedor.</p>
+</blockquote>
+<h3 id="desde-la-vm-de-gcp-dentro-de-docker">Desde la VM de GCP (dentro de Docker) </h3>
+<p>Cada BD es accesible con <code>docker compose exec</code>:</p>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Auth DB</span>
+<span class="token function">docker</span> compose <span class="token builtin class-name">exec</span> auth-service psql <span class="token parameter variable">-U</span> postgres <span class="token parameter variable">-d</span> auth_db
+
+<span class="token comment"># Restaurant DB</span>
+<span class="token function">docker</span> compose <span class="token builtin class-name">exec</span> restaurant-catalog-service psql <span class="token parameter variable">-U</span> postgres <span class="token parameter variable">-d</span> restaurant_db
+
+<span class="token comment"># Order DB</span>
+<span class="token function">docker</span> compose <span class="token builtin class-name">exec</span> order-service psql <span class="token parameter variable">-U</span> postgres <span class="token parameter variable">-d</span> order_db
+
+<span class="token comment"># Delivery DB</span>
+<span class="token function">docker</span> compose <span class="token builtin class-name">exec</span> delivery-service psql <span class="token parameter variable">-U</span> postgres <span class="token parameter variable">-d</span> delivery_db
+</code></pre><h3 id="queries-útiles-dentro-de-cada-bd">Queries útiles dentro de cada BD </h3>
+<pre data-role="codeBlock" data-info="sql" class="language-sql sql"><code><span class="token comment">-- Auth DB: Ver usuarios</span>
+<span class="token keyword keyword-SELECT">SELECT</span> id<span class="token punctuation">,</span> email<span class="token punctuation">,</span> name<span class="token punctuation">,</span> role<span class="token punctuation">,</span> created_at <span class="token keyword keyword-FROM">FROM</span> users <span class="token keyword keyword-ORDER">ORDER</span> <span class="token keyword keyword-BY">BY</span> id<span class="token punctuation">;</span>
+
+<span class="token comment">-- Restaurant DB: Ver restaurantes y menú</span>
+<span class="token keyword keyword-SELECT">SELECT</span> <span class="token operator">*</span> <span class="token keyword keyword-FROM">FROM</span> restaurants<span class="token punctuation">;</span>
+<span class="token keyword keyword-SELECT">SELECT</span> <span class="token operator">*</span> <span class="token keyword keyword-FROM">FROM</span> menu_items<span class="token punctuation">;</span>
+
+<span class="token comment">-- Order DB: Ver órdenes y sus items</span>
+<span class="token keyword keyword-SELECT">SELECT</span> id<span class="token punctuation">,</span> client_name<span class="token punctuation">,</span> restaurant_name<span class="token punctuation">,</span> total<span class="token punctuation">,</span> <span class="token keyword keyword-status">status</span><span class="token punctuation">,</span> created_at <span class="token keyword keyword-FROM">FROM</span> orders <span class="token keyword keyword-ORDER">ORDER</span> <span class="token keyword keyword-BY">BY</span> id<span class="token punctuation">;</span>
+<span class="token keyword keyword-SELECT">SELECT</span> <span class="token operator">*</span> <span class="token keyword keyword-FROM">FROM</span> order_items<span class="token punctuation">;</span>
+
+<span class="token comment">-- Delivery DB: Ver entregas</span>
+<span class="token keyword keyword-SELECT">SELECT</span> <span class="token operator">*</span> <span class="token keyword keyword-FROM">FROM</span> deliveries<span class="token punctuation">;</span>
+</code></pre><h3 id="credenciales-de-cada-base-de-datos">Credenciales de cada Base de Datos </h3>
+<table>
+<thead>
+<tr>
+<th>Servicio</th>
+<th>Host (dentro del contenedor)</th>
+<th>Puerto</th>
+<th>Usuario</th>
+<th>Contraseña</th>
+<th>Base de Datos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auth Service</td>
+<td><code>localhost</code></td>
+<td><code>5432</code></td>
+<td><code>postgres</code></td>
+<td><code>postgres</code></td>
+<td><code>auth_db</code></td>
+</tr>
+<tr>
+<td>Restaurant Catalog</td>
+<td><code>localhost</code></td>
+<td><code>5432</code></td>
+<td><code>postgres</code></td>
+<td><code>postgres</code></td>
+<td><code>restaurant_db</code></td>
+</tr>
+<tr>
+<td>Order Service</td>
+<td><code>localhost</code></td>
+<td><code>5432</code></td>
+<td><code>postgres</code></td>
+<td><code>postgres</code></td>
+<td><code>order_db</code></td>
+</tr>
+<tr>
+<td>Delivery Service</td>
+<td><code>localhost</code></td>
+<td><code>5432</code></td>
+<td><code>postgres</code></td>
+<td><code>postgres</code></td>
+<td><code>delivery_db</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="conexión-desde-dbeaver-local-via-ssh-tunnel">Conexión desde DBeaver (local) via SSH Tunnel </h3>
+<blockquote>
+<p>Como las BDs no exponen puertos al exterior, se conecta vía túnel SSH a la VM de GCP.</p>
+</blockquote>
+<p><strong>Configuración por cada BD en DBeaver:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Auth DB</th>
+<th>Restaurant DB</th>
+<th>Order DB</th>
+<th>Delivery DB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Connection Type</strong></td>
+<td>PostgreSQL</td>
+<td>PostgreSQL</td>
+<td>PostgreSQL</td>
+<td>PostgreSQL</td>
+</tr>
+<tr>
+<td><strong>Host</strong></td>
+<td><code>localhost</code></td>
+<td><code>localhost</code></td>
+<td><code>localhost</code></td>
+<td><code>localhost</code></td>
+</tr>
+<tr>
+<td><strong>Port</strong></td>
+<td><code>5432</code></td>
+<td><code>5432</code></td>
+<td><code>5432</code></td>
+<td><code>5432</code></td>
+</tr>
+<tr>
+<td><strong>Database</strong></td>
+<td><code>auth_db</code></td>
+<td><code>restaurant_db</code></td>
+<td><code>order_db</code></td>
+<td><code>delivery_db</code></td>
+</tr>
+<tr>
+<td><strong>Username</strong></td>
+<td><code>postgres</code></td>
+<td><code>postgres</code></td>
+<td><code>postgres</code></td>
+<td><code>postgres</code></td>
+</tr>
+<tr>
+<td><strong>Password</strong></td>
+<td><code>postgres</code></td>
+<td><code>postgres</code></td>
+<td><code>postgres</code></td>
+<td><code>postgres</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Pestaña SSH Tunnel en DBeaver:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Use SSH Tunnel</td>
+<td>✅ Sí</td>
+</tr>
+<tr>
+<td>Host</td>
+<td><code>34.57.204.245</code></td>
+</tr>
+<tr>
+<td>Port</td>
+<td><code>22</code></td>
+</tr>
+<tr>
+<td>Username</td>
+<td><code>jose</code></td>
+</tr>
+<tr>
+<td>Authentication</td>
+<td>Google Cloud SSH Key (o Private Key)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Alternativa rápida: abrir túneles SSH manuales:</strong></p>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Túnel para auth_db (local 15432 → contenedor auth-service:5432)</span>
+gcloud compute <span class="token function">ssh</span> delivereats-vm <span class="token parameter variable">--zone</span><span class="token operator">=</span>us-central1-a -- <span class="token parameter variable">-L</span> <span class="token number">15432</span>:localhost:50051 <span class="token parameter variable">-N</span> <span class="token operator">&amp;</span>
+
+<span class="token comment"># O conectar directo por port-forward del contenedor:</span>
+gcloud compute <span class="token function">ssh</span> delivereats-vm <span class="token parameter variable">--zone</span><span class="token operator">=</span>us-central1-a <span class="token parameter variable">--command</span><span class="token operator">=</span><span class="token string">"sudo docker compose exec -T auth-service psql -U postgres -d auth_db -c 'SELECT * FROM users;'"</span>
+gcloud compute <span class="token function">ssh</span> delivereats-vm <span class="token parameter variable">--zone</span><span class="token operator">=</span>us-central1-a <span class="token parameter variable">--command</span><span class="token operator">=</span><span class="token string">"sudo docker compose exec -T restaurant-catalog-service psql -U postgres -d restaurant_db -c 'SELECT * FROM restaurants; SELECT * FROM menu_items;'"</span>
+gcloud compute <span class="token function">ssh</span> delivereats-vm <span class="token parameter variable">--zone</span><span class="token operator">=</span>us-central1-a <span class="token parameter variable">--command</span><span class="token operator">=</span><span class="token string">"sudo docker compose exec -T order-service psql -U postgres -d order_db -c 'SELECT id, client_name, restaurant_name, total, status FROM orders;'"</span>
+gcloud compute <span class="token function">ssh</span> delivereats-vm <span class="token parameter variable">--zone</span><span class="token operator">=</span>us-central1-a <span class="token parameter variable">--command</span><span class="token operator">=</span><span class="token string">"sudo docker compose exec -T delivery-service psql -U postgres -d delivery_db -c 'SELECT * FROM deliveries;'"</span>
+</code></pre><hr>
+<h2 id="-comandos-docker">�🐳 Comandos Docker </h2>
+<h3 id="levantar-todo">Levantar TODO </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Desde la raíz del proyecto</span>
+<span class="token function">docker</span> compose up <span class="token parameter variable">--build</span> <span class="token parameter variable">-d</span>
+
+<span class="token comment"># Verificar que los 7 contenedores estén corriendo</span>
+<span class="token function">docker</span> compose <span class="token function">ps</span>
+</code></pre><h3 id="detener-todo">Detener TODO </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">docker</span> compose down
+</code></pre><h3 id="reconstruir-y-reiniciar-un-servicio-individual">Reconstruir y reiniciar un servicio individual </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Auth Service</span>
+<span class="token function">docker</span> compose up <span class="token parameter variable">-d</span> <span class="token parameter variable">--build</span> auth-service
+
+<span class="token comment"># Restaurant Catalog Service</span>
+<span class="token function">docker</span> compose up <span class="token parameter variable">-d</span> <span class="token parameter variable">--build</span> restaurant-catalog-service
+
+<span class="token comment"># Order Service</span>
+<span class="token function">docker</span> compose up <span class="token parameter variable">-d</span> <span class="token parameter variable">--build</span> order-service
+
+<span class="token comment"># Delivery Service</span>
+<span class="token function">docker</span> compose up <span class="token parameter variable">-d</span> <span class="token parameter variable">--build</span> delivery-service
+
+<span class="token comment"># Notification Service</span>
+<span class="token function">docker</span> compose up <span class="token parameter variable">-d</span> <span class="token parameter variable">--build</span> notification-service
+
+<span class="token comment"># API Gateway</span>
+<span class="token function">docker</span> compose up <span class="token parameter variable">-d</span> <span class="token parameter variable">--build</span> api-gateway
+
+<span class="token comment"># Frontend</span>
+<span class="token function">docker</span> compose up <span class="token parameter variable">-d</span> <span class="token parameter variable">--build</span> frontend
+</code></pre><h3 id="ver-logs-de-un-servicio">Ver logs de un servicio </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">docker</span> compose logs <span class="token parameter variable">-f</span> auth-service
+<span class="token function">docker</span> compose logs <span class="token parameter variable">-f</span> notification-service
+<span class="token function">docker</span> compose logs <span class="token parameter variable">-f</span> api-gateway
+<span class="token function">docker</span> compose logs <span class="token parameter variable">-f</span> order-service
+</code></pre><h3 id="verificar-health">Verificar Health </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> http://localhost:3000/api/health
+<span class="token comment"># {"status":"OK","service":"API Gateway - Delivereats"}</span>
+</code></pre><hr>
+<h2 id="-rúbrica--comandos-por-cada-punto">✅ RÚBRICA — Comandos por cada punto </h2>
+<blockquote>
+<p><strong>BASE URL:</strong> <code>http://34.57.204.245:3000/api</code> (GCP) o <code>http://localhost:3000/api</code> (local)</p>
+</blockquote>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token assign-left variable">BASE</span><span class="token operator">=</span><span class="token string">"http://34.57.204.245:3000/api"</span>
+</code></pre><hr>
+<h3 id="️-frontend-20-pts">🖥️ FRONTEND (20 pts) </h3>
+<table>
+<thead>
+<tr>
+<th>Criterio</th>
+<th>Valor</th>
+<th>Cómo demostrar</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Consumo de servicios desde el frontend</td>
+<td>10</td>
+<td>Abrir <a href="http://34.57.204.245:5173">http://34.57.204.245:5173</a> — toda la app consume REST</td>
+</tr>
+<tr>
+<td>UI coherente</td>
+<td>2.5</td>
+<td>Navegar por las 4 vistas de roles, diseño uniforme</td>
+</tr>
+<tr>
+<td>UX amigable</td>
+<td>2.5</td>
+<td>Validaciones en formularios, toast notifications, badges de estado</td>
+</tr>
+<tr>
+<td>Respuesta y navegación rápida</td>
+<td>5</td>
+<td>SPA con React Router, sin recarga de página</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Demostración en el frontend:</strong></p>
+<ol>
+<li>Ir a <a href="http://34.57.204.245:5173">http://34.57.204.245:5173</a></li>
+<li>Login con cada rol y mostrar su dashboard</li>
+<li>Mostrar validaciones (intentar submit con campos vacíos)</li>
+<li>Mostrar navegación entre páginas sin recarga</li>
+</ol>
+<hr>
+<h3 id="️-funcionalidades-40-pts">⚙️ FUNCIONALIDADES (40 pts) </h3>
+<h4 id="-uso-de-jwt-para-sesiones-3-pts">🔐 Uso de JWT para sesiones (3 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Login → devuelve JWT</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST <span class="token variable">$BASE</span>/auth/login <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"email":"iam@jalber.to","password":"Test123456"}'</span>
+
+<span class="token comment"># Guardar token para usar después</span>
+<span class="token assign-left variable">TOKEN</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST $BASE/auth/login <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"email":"iam@jalber.to","password":"Test123456"}'</span> <span class="token punctuation">\</span>
+  <span class="token operator">|</span> <span class="token function">grep</span> <span class="token parameter variable">-o</span> <span class="token string">'"token":"[^"]*"'</span> <span class="token operator">|</span> <span class="token function">cut</span> -d<span class="token string">'"'</span> <span class="token parameter variable">-f4</span><span class="token variable">)</span></span>
+
+<span class="token comment"># Request sin token → 401</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token variable">$BASE</span>/restaurants
+<span class="token comment"># {"message</span><span class="token string">":"</span>Token requerido<span class="token string">"}
+
+# Request con token → 200
+curl -s <span class="token variable">$BASE</span>/restaurants -H "</span>Authorization: Bearer <span class="token variable">$TOKEN</span>"
+</code></pre><h4 id="-registro-de-cliente-15-pts">👤 Registro de Cliente (1.5 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST <span class="token variable">$BASE</span>/auth/register <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"email":"nuevo_cliente@test.com","password":"Pass123456","name":"Nuevo Cliente","role":"CLIENTE"}'</span>
+<span class="token comment"># {"success":true,"message":"Usuario registrado exitosamente","user_id":...}</span>
+</code></pre><h4 id="-registro-de-restaurante-15-pts">🏪 Registro de Restaurante (1.5 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST <span class="token variable">$BASE</span>/auth/register <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"email":"nuevo_rest@test.com","password":"Pass123456","name":"Nuevo Restaurante","role":"RESTAURANTE"}'</span>
+</code></pre><h4 id="-registro-de-repartidor-15-pts">🚴 Registro de Repartidor (1.5 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST <span class="token variable">$BASE</span>/auth/register <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"email":"nuevo_rep@test.com","password":"Pass123456","name":"Nuevo Repartidor","role":"REPARTIDOR"}'</span>
+</code></pre><h4 id="-creación-de-orden-1-pt">🛒 Creación de orden (1 pt) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Login como CLIENTE</span>
+<span class="token assign-left variable">CLI_TOKEN</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST $BASE/auth/login <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"email":"iam@jalber.to","password":"Test123456"}'</span> <span class="token punctuation">\</span>
+  <span class="token operator">|</span> <span class="token function">grep</span> <span class="token parameter variable">-o</span> <span class="token string">'"token":"[^"]*"'</span> <span class="token operator">|</span> <span class="token function">cut</span> -d<span class="token string">'"'</span> <span class="token parameter variable">-f4</span><span class="token variable">)</span></span>
+
+<span class="token comment"># Crear orden</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST <span class="token variable">$BASE</span>/orders <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$CLI_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{
+    "restaurant_id": 1,
+    "restaurant_name": "Pizza Test Updated",
+    "delivery_address": "5ta Avenida 12-34, Zona 1, Guatemala",
+    "items": [{"menu_item_id":1,"name":"Pizza Margarita","quantity":2,"price":75}]
+  }'</span>
+</code></pre><h4 id="-creación-de-productos-nuevos-15-pts">➕ Creación de productos nuevos (1.5 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Login como RESTAURANTE</span>
+<span class="token assign-left variable">REST_TOKEN</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST $BASE/auth/login <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"email":"rest_owner@test.com","password":"Rest123456"}'</span> <span class="token punctuation">\</span>
+  <span class="token operator">|</span> <span class="token function">grep</span> <span class="token parameter variable">-o</span> <span class="token string">'"token":"[^"]*"'</span> <span class="token operator">|</span> <span class="token function">cut</span> -d<span class="token string">'"'</span> <span class="token parameter variable">-f4</span><span class="token variable">)</span></span>
+
+<span class="token comment"># Crear producto</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST <span class="token variable">$BASE</span>/restaurants/1/menu <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REST_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"name":"Lasagna Bolognese","description":"Lasagna con carne","price":85,"available":true,"category":"Pastas"}'</span>
+</code></pre><h4 id="️-actualizar-productos-1-pt">✏️ Actualizar productos (1 pt) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> PUT <span class="token variable">$BASE</span>/restaurants/menu/1 <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REST_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"name":"Pizza Margarita XL","description":"Pizza grande","price":95,"available":true,"category":"Pizzas"}'</span>
+</code></pre><h4 id="️-eliminar-producto-1-pt">🗑️ Eliminar producto (1 pt) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Primero crear uno temporal para eliminar</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST <span class="token variable">$BASE</span>/restaurants/1/menu <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REST_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"name":"Temporal","description":"Para borrar","price":10,"available":true,"category":"Test"}'</span>
+
+<span class="token comment"># Eliminar (usar el ID devuelto)</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> DELETE <span class="token variable">$BASE</span>/restaurants/menu/ITEM_ID <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REST_TOKEN</span>"</span>
+</code></pre><h4 id="-actualización-de-estado-de-orden--cliente-1-pt">📋 Actualización de estado de orden — Cliente (1 pt) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Ver mis órdenes como cliente</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token variable">$BASE</span>/orders/my <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$CLI_TOKEN</span>"</span>
+</code></pre><h4 id="-actualización-de-estado-de-orden--restaurante-2-pts">📋 Actualización de estado de orden — Restaurante (2 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Ver órdenes del restaurante</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token variable">$BASE</span>/orders/restaurant/1 <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REST_TOKEN</span>"</span>
+
+<span class="token comment"># Aceptar orden (CREADA → EN_PROCESO)</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> PUT <span class="token variable">$BASE</span>/orders/ORDER_ID/status <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REST_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"status":"EN_PROCESO"}'</span>
+
+<span class="token comment"># Marcar como lista (EN_PROCESO → LISTA)</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> PUT <span class="token variable">$BASE</span>/orders/ORDER_ID/status <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REST_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"status":"LISTA"}'</span>
+</code></pre><h4 id="-actualizar-estado-de-orden--repartidor-1-pt">📋 Actualizar estado de orden — Repartidor (1 pt) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Login como REPARTIDOR</span>
+<span class="token assign-left variable">REP_TOKEN</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST $BASE/auth/login <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"email":"rep_test@test.com","password":"Rep123456"}'</span> <span class="token punctuation">\</span>
+  <span class="token operator">|</span> <span class="token function">grep</span> <span class="token parameter variable">-o</span> <span class="token string">'"token":"[^"]*"'</span> <span class="token operator">|</span> <span class="token function">cut</span> -d<span class="token string">'"'</span> <span class="token parameter variable">-f4</span><span class="token variable">)</span></span>
+
+<span class="token comment"># Aceptar pedido listo</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST <span class="token variable">$BASE</span>/delivery/accept <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REP_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"order_id": ORDER_ID}'</span>
+
+<span class="token comment"># Marcar como entregada</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> PUT <span class="token variable">$BASE</span>/delivery/status <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REP_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"order_id": ORDER_ID, "status":"ENTREGADA"}'</span>
+</code></pre><h4 id="-listado-de-órdenes-por-restaurante-1-pt">📑 Listado de órdenes por restaurante (1 pt) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token variable">$BASE</span>/orders/restaurant/1 <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REST_TOKEN</span>"</span>
+</code></pre><h4 id="-cancelar-orden--cliente-1-pt">❌ Cancelar Orden — Cliente (1 pt) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> PUT <span class="token variable">$BASE</span>/orders/ORDER_ID/cancel <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$CLI_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"reason":"Ya no quiero la orden"}'</span>
+</code></pre><h4 id="-cancelar-orden--restaurante-1-pt">❌ Cancelar Orden — Restaurante (1 pt) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> PUT <span class="token variable">$BASE</span>/orders/ORDER_ID/cancel <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REST_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"reason":"Sin ingredientes disponibles"}'</span>
+</code></pre><h4 id="-cancelar-orden--repartidor-1-pt">❌ Cancelar Orden — Repartidor (1 pt) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> PUT <span class="token variable">$BASE</span>/delivery/status <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REP_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"order_id": ORDER_ID, "status":"CANCELADA", "reason":"Problema con el vehículo"}'</span>
+</code></pre><hr>
+<h3 id="-notificaciones-20-pts">📧 NOTIFICACIONES (20 pts) </h3>
+<blockquote>
+<p>Los emails se envían a la dirección del CLIENTE que creó la orden.<br>
+SMTP configurado con: <code>jalbertochigua@gmail.com</code></p>
+</blockquote>
+<h4 id="️-notificación-de-orden-creada-4-pts">✉️ Notificación de orden creada (4 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Se envía automáticamente al crear una orden (POST /orders)</span>
+<span class="token comment"># Ver logs:</span>
+<span class="token function">docker</span> compose logs notification-service <span class="token parameter variable">--tail</span> <span class="token number">10</span>
+</code></pre><h4 id="️-notificación-de-orden-cancelada-por-cliente-4-pts">✉️ Notificación de orden cancelada por Cliente (4 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Se envía automáticamente al cancelar (PUT /orders/:id/cancel con token CLIENTE)</span>
+</code></pre><h4 id="️-notificación-de-orden-en-camino-4-pts">✉️ Notificación de orden en camino (4 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Se envía automáticamente cuando el repartidor acepta (POST /delivery/accept)</span>
+</code></pre><h4 id="️-notificación-de-orden-cancelada-por-restaurante-4-pts">✉️ Notificación de orden cancelada por Restaurante (4 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Se envía al cancelar con token RESTAURANTE (PUT /orders/:id/cancel)</span>
+<span class="token comment"># También se envía al rechazar (PUT /orders/:id/reject)</span>
+</code></pre><h4 id="️-notificación-de-orden-cancelada-por-repartidor-4-pts">✉️ Notificación de orden cancelada por Repartidor (4 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Se envía cuando repartidor cancela (PUT /delivery/status con status=CANCELADA)</span>
+</code></pre><h4 id="verificar-logs-de-emails-enviados">Verificar logs de emails enviados </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">docker</span> compose logs notification-service
+<span class="token comment"># [Notification-Service] Email sent to iam@jalber.to: Pedido #X Creado - Delivereats</span>
+<span class="token comment"># [Notification-Service] Email sent to iam@jalber.to: Pedido #X Cancelado - Delivereats</span>
+<span class="token comment"># [Notification-Service] Email sent to iam@jalber.to: Pedido #X En Camino - Delivereats</span>
+</code></pre><hr>
+<h3 id="️-arquitectura-e-infraestructura-30-pts">🏗️ ARQUITECTURA E INFRAESTRUCTURA (30 pts) </h3>
+<h4 id="implementación-de-microservicios-6-pts">Implementación de microservicios (6 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Mostrar los 7 contenedores corriendo (6 microservicios + frontend)</span>
+<span class="token function">docker</span> compose <span class="token function">ps</span>
+
+<span class="token comment"># Servicios:</span>
+<span class="token comment"># 1. auth-service         (puerto 50051)</span>
+<span class="token comment"># 2. restaurant-catalog   (puerto 50052)</span>
+<span class="token comment"># 3. order-service        (puerto 50053)</span>
+<span class="token comment"># 4. delivery-service     (puerto 50054)</span>
+<span class="token comment"># 5. notification-service (puerto 50055)</span>
+<span class="token comment"># 6. api-gateway          (puerto 3000)</span>
+<span class="token comment"># 7. frontend             (puerto 5173)</span>
+</code></pre><h4 id="imágenes-docker-funcionales-y-optimizadas-6-pts">Imágenes Docker funcionales y optimizadas (6 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Mostrar imágenes y sus tamaños</span>
+<span class="token function">docker</span> images <span class="token operator">|</span> <span class="token function">grep</span> delivereats
+
+<span class="token comment"># Mostrar que usa alpine (imágenes ligeras)</span>
+<span class="token function">docker</span> inspect delivereats-auth-service <span class="token operator">|</span> <span class="token function">grep</span> <span class="token parameter variable">-i</span> <span class="token string">"image"</span>
+
+<span class="token comment"># Frontend usa multi-stage (nginx:alpine ~25MB)</span>
+<span class="token function">docker</span> inspect delivereats-frontend <span class="token operator">|</span> <span class="token function">grep</span> <span class="token parameter variable">-i</span> <span class="token string">"image"</span>
+</code></pre><h4 id="uso-de-gcp-para-despliegue-6-pts">Uso de GCP para despliegue (6 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># La app está corriendo en GCP Compute Engine</span>
+<span class="token comment"># VM: delivereats-vm | Zona: us-central1-a | IP: 34.57.204.245</span>
+<span class="token comment"># Verificar:</span>
+<span class="token function">curl</span> http://34.57.204.245:3000/api/health
+<span class="token function">curl</span> http://34.57.204.245:5173 <span class="token operator">|</span> <span class="token function">head</span> <span class="token parameter variable">-3</span>
+</code></pre><h4 id="conexión-correcta-de-componentes-6-pts">Conexión correcta de componentes (6 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># 4 bases de datos independientes (PostgreSQL embebida por servicio)</span>
+<span class="token function">docker</span> compose <span class="token builtin class-name">exec</span> auth-service psql <span class="token parameter variable">-U</span> postgres <span class="token parameter variable">-d</span> auth_db <span class="token parameter variable">-c</span> <span class="token string">"\dt"</span>
+<span class="token function">docker</span> compose <span class="token builtin class-name">exec</span> restaurant-catalog-service psql <span class="token parameter variable">-U</span> postgres <span class="token parameter variable">-d</span> restaurant_db <span class="token parameter variable">-c</span> <span class="token string">"\dt"</span>
+<span class="token function">docker</span> compose <span class="token builtin class-name">exec</span> order-service psql <span class="token parameter variable">-U</span> postgres <span class="token parameter variable">-d</span> order_db <span class="token parameter variable">-c</span> <span class="token string">"\dt"</span>
+<span class="token function">docker</span> compose <span class="token builtin class-name">exec</span> delivery-service psql <span class="token parameter variable">-U</span> postgres <span class="token parameter variable">-d</span> delivery_db <span class="token parameter variable">-c</span> <span class="token string">"\dt"</span>
+
+<span class="token comment"># Frontend → API Gateway → Microservicios</span>
+<span class="token comment"># Verificar con un request completo</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token variable">$BASE</span>/health
+</code></pre><h4 id="uso-de-api-gateway-6-pts">Uso de API Gateway (6 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Todas las rutas pasan por el gateway en puerto 3000</span>
+<span class="token comment"># Mostrar rutas disponibles:</span>
+<span class="token comment"># /api/auth/*          → auth-service:50051</span>
+<span class="token comment"># /api/restaurants/*   → restaurant-catalog-service:50052</span>
+<span class="token comment"># /api/orders/*        → order-service:50053</span>
+<span class="token comment"># /api/delivery/*      → delivery-service:50054</span>
+
+<span class="token comment"># JWT se valida en el gateway (middleware.js)</span>
+<span class="token comment"># Roles se validan en el gateway (authorizeRoles)</span>
+
+<span class="token comment"># Sin token:</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token variable">$BASE</span>/restaurants
+<span class="token comment"># {"message":"Token requerido"}</span>
+
+<span class="token comment"># Con token inválido:</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token variable">$BASE</span>/restaurants <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer token_falso"</span>
+<span class="token comment"># {"message":"Token inválido"}</span>
+</code></pre><h4 id="uso-de-grpc-para-comunicación-6-pts">Uso de gRPC para comunicación (6 pts) </h4>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Mostrar archivos .proto</span>
+<span class="token function">ls</span> proto/
+
+<span class="token comment"># Mostrar contenido de un proto</span>
+<span class="token function">cat</span> proto/auth.proto
+<span class="token function">cat</span> proto/order.proto
+
+<span class="token comment"># Mostrar que el gateway usa gRPC clients</span>
+<span class="token function">cat</span> api-gateway/src/grpcClients.js
+
+<span class="token comment"># Comunicación inter-servicio: delivery-service llama a order-service via gRPC</span>
+<span class="token function">cat</span> delivery-service/src/handlers.js <span class="token operator">|</span> <span class="token function">grep</span> <span class="token parameter variable">-A5</span> <span class="token string">"orderClient"</span>
+</code></pre><hr>
+<h2 id="-flujo-completo-de-demostración-paso-a-paso">🔄 FLUJO COMPLETO DE DEMOSTRACIÓN (paso a paso) </h2>
+<h3 id="preparar-tokens">Preparar tokens </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token assign-left variable">BASE</span><span class="token operator">=</span><span class="token string">"http://34.57.204.245:3000/api"</span>
+
+<span class="token assign-left variable">CLI_TOKEN</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST $BASE/auth/login <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"email":"iam@jalber.to","password":"Test123456"}'</span> <span class="token punctuation">\</span>
+  <span class="token operator">|</span> <span class="token function">grep</span> <span class="token parameter variable">-o</span> <span class="token string">'"token":"[^"]*"'</span> <span class="token operator">|</span> <span class="token function">cut</span> -d<span class="token string">'"'</span> <span class="token parameter variable">-f4</span><span class="token variable">)</span></span>
+
+<span class="token assign-left variable">REST_TOKEN</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST $BASE/auth/login <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"email":"rest_owner@test.com","password":"Rest123456"}'</span> <span class="token punctuation">\</span>
+  <span class="token operator">|</span> <span class="token function">grep</span> <span class="token parameter variable">-o</span> <span class="token string">'"token":"[^"]*"'</span> <span class="token operator">|</span> <span class="token function">cut</span> -d<span class="token string">'"'</span> <span class="token parameter variable">-f4</span><span class="token variable">)</span></span>
+
+<span class="token assign-left variable">REP_TOKEN</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST $BASE/auth/login <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"email":"rep_test@test.com","password":"Rep123456"}'</span> <span class="token punctuation">\</span>
+  <span class="token operator">|</span> <span class="token function">grep</span> <span class="token parameter variable">-o</span> <span class="token string">'"token":"[^"]*"'</span> <span class="token operator">|</span> <span class="token function">cut</span> -d<span class="token string">'"'</span> <span class="token parameter variable">-f4</span><span class="token variable">)</span></span>
+
+<span class="token assign-left variable">ADMIN_TOKEN</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST $BASE/auth/login <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"email":"admin_smtp@test.com","password":"Admin123456"}'</span> <span class="token punctuation">\</span>
+  <span class="token operator">|</span> <span class="token function">grep</span> <span class="token parameter variable">-o</span> <span class="token string">'"token":"[^"]*"'</span> <span class="token operator">|</span> <span class="token function">cut</span> -d<span class="token string">'"'</span> <span class="token parameter variable">-f4</span><span class="token variable">)</span></span>
+
+<span class="token builtin class-name">echo</span> <span class="token string">"Tokens OK"</span>
+</code></pre><h3 id="paso-1-cliente-crea-orden--email-orden-creada">Paso 1: Cliente crea orden → email "Orden Creada" </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST <span class="token variable">$BASE</span>/orders <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$CLI_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{
+    "restaurant_id": 1,
+    "restaurant_name": "Pizza Test Updated",
+    "delivery_address": "5ta Avenida 12-34, Zona 1, Guatemala",
+    "items": [{"menu_item_id":1,"name":"Pizza Margarita","quantity":2,"price":75}]
+  }'</span>
+<span class="token comment"># ✉️ Email: "Pedido #N Creado"</span>
+<span class="token comment"># Guardar el ORDER_ID del response</span>
+</code></pre><h3 id="paso-2-restaurante-acepta-orden">Paso 2: Restaurante acepta orden </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> PUT <span class="token variable">$BASE</span>/orders/ORDER_ID/status <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REST_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"status":"EN_PROCESO"}'</span>
+</code></pre><h3 id="paso-3-restaurante-marca-como-lista">Paso 3: Restaurante marca como lista </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> PUT <span class="token variable">$BASE</span>/orders/ORDER_ID/status <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REST_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"status":"LISTA"}'</span>
+</code></pre><h3 id="paso-4-repartidor-acepta--email-en-camino">Paso 4: Repartidor acepta → email "En Camino" </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST <span class="token variable">$BASE</span>/delivery/accept <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REP_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"order_id": ORDER_ID}'</span>
+<span class="token comment"># ✉️ Email: "Pedido #N En Camino"</span>
+</code></pre><h3 id="paso-5-repartidor-entrega">Paso 5: Repartidor entrega </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> PUT <span class="token variable">$BASE</span>/delivery/status <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REP_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"order_id": ORDER_ID, "status":"ENTREGADA"}'</span>
+</code></pre><h3 id="flujo-alternativo-cancelar-como-cliente--email">Flujo alternativo: Cancelar como Cliente → email </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Crear orden nueva</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> POST <span class="token variable">$BASE</span>/orders <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$CLI_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{
+    "restaurant_id": 1,
+    "restaurant_name": "Pizza Test Updated",
+    "delivery_address": "5ta Avenida 12-34, Zona 1, Guatemala",
+    "items": [{"menu_item_id":1,"name":"Pizza Margarita","quantity":1,"price":75}]
+  }'</span>
+
+<span class="token comment"># Cancelar</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> PUT <span class="token variable">$BASE</span>/orders/ORDER_ID/cancel <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$CLI_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"reason":"Cambié de opinión"}'</span>
+<span class="token comment"># ✉️ Email: "Pedido #N Cancelado"</span>
+</code></pre><h3 id="flujo-alternativo-rechazar-como-restaurante--email">Flujo alternativo: Rechazar como Restaurante → email </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Crear orden nueva, luego rechazar</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> PUT <span class="token variable">$BASE</span>/orders/ORDER_ID/reject <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REST_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"reason":"Sin stock disponible"}'</span>
+<span class="token comment"># ✉️ Email: "Pedido #N Rechazado"</span>
+</code></pre><h3 id="flujo-alternativo-cancelar-como-repartidor--email">Flujo alternativo: Cancelar como Repartidor → email </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># (La orden debe estar en estado LISTA, repartidor la acepta y luego cancela)</span>
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> <span class="token parameter variable">-X</span> PUT <span class="token variable">$BASE</span>/delivery/status <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer <span class="token variable">$REP_TOKEN</span>"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"order_id": ORDER_ID, "status":"CANCELADA", "reason":"Problema con el vehículo"}'</span>
+<span class="token comment"># ✉️ Email: "Pedido #N Cancelado por Repartidor"</span>
+</code></pre><hr>
+<h2 id="-máquina-de-estados-de-una-orden">📊 Máquina de Estados de una Orden </h2>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>CREADA → EN_PROCESO → LISTA → EN_CAMINO → ENTREGADA
+  ↓          ↓          ↓         ↓
+CANCELADA  CANCELADA  CANCELADA  CANCELADA
+  ↓
+RECHAZADA (solo restaurante)
+</code></pre><hr>
+<h2 id="️-información-de-gcp">🗂️ Información de GCP </h2>
+<table>
+<thead>
+<tr>
+<th>Recurso</th>
+<th>Detalle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Proyecto</td>
+<td><code>usac-sa-201346084</code></td>
+</tr>
+<tr>
+<td>VM</td>
+<td><code>delivereats-vm</code></td>
+</tr>
+<tr>
+<td>Zona</td>
+<td><code>us-central1-a</code></td>
+</tr>
+<tr>
+<td>Tipo</td>
+<td><code>e2-medium</code> (2 vCPU, 4 GB RAM)</td>
+</tr>
+<tr>
+<td>SO</td>
+<td>Ubuntu 22.04 LTS</td>
+</tr>
+<tr>
+<td>IP</td>
+<td><code>34.57.204.245</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="comandos-gcp">Comandos GCP </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># SSH a la VM</span>
+gcloud compute <span class="token function">ssh</span> delivereats-vm <span class="token parameter variable">--zone</span><span class="token operator">=</span>us-central1-a
+
+<span class="token comment"># Ver contenedores en la VM</span>
+gcloud compute <span class="token function">ssh</span> delivereats-vm <span class="token parameter variable">--zone</span><span class="token operator">=</span>us-central1-a <span class="token parameter variable">--command</span><span class="token operator">=</span><span class="token string">"sudo docker compose -f /home/jose/delivereats/docker-compose.yml ps"</span>
+
+<span class="token comment"># Ver logs de un servicio en la VM</span>
+gcloud compute <span class="token function">ssh</span> delivereats-vm <span class="token parameter variable">--zone</span><span class="token operator">=</span>us-central1-a <span class="token parameter variable">--command</span><span class="token operator">=</span><span class="token string">"sudo docker logs delivereats-notification-service-1 --tail 20"</span>
+
+<span class="token comment"># Reiniciar todo en la VM</span>
+gcloud compute <span class="token function">ssh</span> delivereats-vm <span class="token parameter variable">--zone</span><span class="token operator">=</span>us-central1-a <span class="token parameter variable">--command</span><span class="token operator">=</span><span class="token string">"cd /home/jose/delivereats &amp;&amp; sudo docker compose down &amp;&amp; sudo docker compose up -d"</span>
+</code></pre>
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+  
+    </body></html>
