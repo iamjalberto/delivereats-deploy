@@ -8,6 +8,9 @@ service DeliveryService {
   rpc GetDeliveryByOrder (GetDeliveryByOrderRequest) returns (DeliveryResponse);
   rpc ListAvailableOrders (ListAvailableOrdersRequest) returns (ListDeliveriesResponse);
   rpc ListMyDeliveries (ListMyDeliveriesRequest) returns (ListDeliveriesResponse);
+  rpc UploadEvidence (UploadEvidenceRequest) returns (EvidenceResponse);
+  rpc GetEvidence (GetEvidenceRequest) returns (EvidenceResponse);
+  rpc ListDeliveredOrders (ListDeliveredOrdersRequest) returns (ListDeliveriesResponse);
 }
 
 message AcceptOrderRequest {
@@ -52,4 +55,41 @@ message Delivery {
   string status = 5;
   string accepted_at = 6;
   string delivered_at = 7;
+}
+
+// Evidence messages (P5)
+message UploadEvidenceRequest {
+  int32 order_id = 1;
+  int32 delivery_id = 2;
+  int32 driver_id = 3;
+  string photo_path = 4;
+  string photo_original_name = 5;
+  string photo_mime_type = 6;
+  int32 photo_size_bytes = 7;
+  string notes = 8;
+}
+
+message GetEvidenceRequest {
+  int32 order_id = 1;
+}
+
+message ListDeliveredOrdersRequest {}
+
+message EvidenceResponse {
+  bool success = 1;
+  string message = 2;
+  EvidenceData evidence = 3;
+}
+
+message EvidenceData {
+  int32 id = 1;
+  int32 delivery_id = 2;
+  int32 order_id = 3;
+  int32 driver_id = 4;
+  string photo_path = 5;
+  string photo_original_name = 6;
+  string photo_mime_type = 7;
+  int32 photo_size_bytes = 8;
+  string notes = 9;
+  string uploaded_at = 10;
 }
