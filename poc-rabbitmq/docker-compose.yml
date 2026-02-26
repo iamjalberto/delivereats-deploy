@@ -1,0 +1,97 @@
+services:
+  # =============================================
+  # RABBITMQ - Cola de mensajería
+  # =============================================
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: delivereats-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: delivereats
+      RABBITMQ_DEFAULT_PASS: delivereats123
+    ports:
+      - "5672:5672" # AMQP
+      - "15672:15672" # Management UI
+    networks:
+      - delivereats-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # =============================================
+  # BASE DE DATOS - ORDER SERVICE
+  # =============================================
+  orders-db:
+    image: postgres:15-alpine
+    container_name: delivereats-orders-db
+    environment:
+      POSTGRES_USER: delivereats
+      POSTGRES_PASSWORD: delivereats123
+      POSTGRES_DB: delivereats_orders
+    ports:
+      - "5434:5432"
+    volumes:
+      - orders_db_data:/var/lib/postgresql/data
+      - ../PRACTICA1/database/orders-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    networks:
+      - delivereats-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U delivereats -d delivereats_orders"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # =============================================
+  # ORDER SERVICE (Productor - Publica en cola)
+  # =============================================
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: delivereats-order-service
+    environment:
+      DB_HOST: orders-db
+      DB_PORT: 5432
+      DB_NAME: delivereats_orders
+      DB_USER: delivereats
+      DB_PASSWORD: delivereats123
+      PORT: 3001
+      RABBITMQ_URL: amqp://delivereats:delivereats123@rabbitmq:5672
+    ports:
+      - "3001:3001"
+    depends_on:
+      orders-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - delivereats-network
+    restart: unless-stopped
+
+  # =============================================
+  # RESTAURANT SERVICE (Consumidor - Lee de cola)
+  # =============================================
+  restaurant-service:
+    build:
+      context: ./restaurant-service
+      dockerfile: Dockerfile
+    container_name: delivereats-restaurant-service
+    environment:
+      RABBITMQ_URL: amqp://delivereats:delivereats123@rabbitmq:5672
+      PORT: 3002
+    ports:
+      - "3002:3002"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - delivereats-network
+    restart: unless-stopped
+
+networks:
+  delivereats-network:
+    driver: bridge
+
+volumes:
+  orders_db_data:
