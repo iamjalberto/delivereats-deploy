@@ -177,4 +177,78 @@ router.get("/:orderId", authenticateToken, async (req, res) => {
   }
 });
 
+// ===================== CUPONES =====================
+
+// POST /api/payments/coupons - Crear cupón (ADMINISTRADOR)
+router.post(
+  "/coupons",
+  authenticateToken,
+  authorizeRoles("ADMINISTRADOR"),
+  async (req, res) => {
+    try {
+      const response = await grpcCall(paymentClient, "CreateCoupon", req.body);
+      res.status(201).json(response);
+    } catch (error) {
+      console.error("[API-Gateway] Create coupon error:", error);
+      res.status(500).json({ success: false, message: "Error al crear cupón" });
+    }
+  },
+);
+
+// POST /api/payments/coupons/validate - Validar cupón (CLIENTE)
+router.post(
+  "/coupons/validate",
+  authenticateToken,
+  authorizeRoles("CLIENTE"),
+  async (req, res) => {
+    try {
+      const { code, order_amount } = req.body;
+      const response = await grpcCall(paymentClient, "ValidateCoupon", {
+        code,
+        order_amount: parseFloat(order_amount),
+      });
+      res.json(response);
+    } catch (error) {
+      console.error("[API-Gateway] Validate coupon error:", error);
+      res.status(500).json({ valid: false, message: "Error al validar cupón" });
+    }
+  },
+);
+
+// GET /api/payments/coupons/list - Listar cupones (ADMINISTRADOR)
+router.get(
+  "/coupons/list",
+  authenticateToken,
+  authorizeRoles("ADMINISTRADOR"),
+  async (req, res) => {
+    try {
+      const response = await grpcCall(paymentClient, "ListCoupons", {});
+      res.json(response);
+    } catch (error) {
+      res
+        .status(500)
+        .json({ success: false, message: "Error al listar cupones" });
+    }
+  },
+);
+
+// DELETE /api/payments/coupons/:id - Eliminar cupón (ADMINISTRADOR)
+router.delete(
+  "/coupons/:id",
+  authenticateToken,
+  authorizeRoles("ADMINISTRADOR"),
+  async (req, res) => {
+    try {
+      const response = await grpcCall(paymentClient, "DeleteCoupon", {
+        id: parseInt(req.params.id),
+      });
+      res.json(response);
+    } catch (error) {
+      res
+        .status(500)
+        .json({ success: false, message: "Error al eliminar cupón" });
+    }
+  },
+);
+
 module.exports = router;

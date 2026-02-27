@@ -7,6 +7,11 @@ service PaymentService {
   rpc GetPaymentStatus(GetPaymentStatusRequest) returns (GetPaymentStatusResponse);
   rpc ApproveRefund(ApproveRefundRequest) returns (ApproveRefundResponse);
   rpc ListPayments(ListPaymentsRequest) returns (ListPaymentsResponse);
+  // Cupones
+  rpc CreateCoupon(CreateCouponRequest) returns (CouponResponse);
+  rpc ValidateCoupon(ValidateCouponRequest) returns (ValidateCouponResponse);
+  rpc ListCoupons(ListCouponsRequest) returns (ListCouponsResponse);
+  rpc DeleteCoupon(DeleteCouponRequest) returns (CouponResponse);
 }
 
 enum PaymentType {
@@ -94,4 +99,62 @@ message PaymentData {
   string updated_at = 12;
   int32 refund_approved_by = 13;
   string refund_reason = 14;
+}
+
+// ===================== Cupones =====================
+
+message CreateCouponRequest {
+  string code = 1;
+  string description = 2;
+  string discount_type = 3; // PORCENTAJE o MONTO_FIJO
+  double discount_value = 4;
+  double min_order_amount = 5;
+  double max_discount = 6;
+  int32 max_uses = 7;
+  string expires_at = 8;
+}
+
+message ValidateCouponRequest {
+  string code = 1;
+  double order_amount = 2;
+}
+
+message ValidateCouponResponse {
+  bool valid = 1;
+  string message = 2;
+  double discount_amount = 3;
+  double final_amount = 4;
+  CouponData coupon = 5;
+}
+
+message ListCouponsRequest {}
+
+message ListCouponsResponse {
+  bool success = 1;
+  repeated CouponData coupons = 2;
+}
+
+message DeleteCouponRequest {
+  int32 id = 1;
+}
+
+message CouponResponse {
+  bool success = 1;
+  string message = 2;
+  CouponData coupon = 3;
+}
+
+message CouponData {
+  int32 id = 1;
+  string code = 2;
+  string description = 3;
+  string discount_type = 4;
+  double discount_value = 5;
+  double min_order_amount = 6;
+  double max_discount = 7;
+  int32 max_uses = 8;
+  int32 current_uses = 9;
+  bool active = 10;
+  string expires_at = 11;
+  string created_at = 12;
 }

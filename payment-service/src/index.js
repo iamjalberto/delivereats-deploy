@@ -318,6 +318,170 @@ async function listPayments(call, callback) {
 }
 
 // =====================================================
+// CUPONES
+// =====================================================
+
+async function createCoupon(call, callback) {
+  const req = call.request;
+  console.log(`🎟️ [Payment] Creando cupón: ${req.code}`);
+  try {
+    const result = await pool.query(
+      `INSERT INTO coupons (code, description, discount_type, discount_value, min_order_amount, max_discount, max_uses, expires_at)
+       VALUES (UPPER($1), $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [
+        req.code,
+        req.description || "",
+        req.discount_type || "PORCENTAJE",
+        req.discount_value,
+        req.min_order_amount || 0,
+        req.max_discount || null,
+        req.max_uses || 1,
+        req.expires_at || null,
+      ],
+    );
+    const c = result.rows[0];
+    callback(null, {
+      success: true,
+      message: "Cupón creado exitosamente",
+      coupon: mapCoupon(c),
+    });
+  } catch (error) {
+    console.error("❌ [Payment] Error creando cupón:", error.message);
+    callback(null, {
+      success: false,
+      message: error.message.includes("duplicate")
+        ? "El código de cupón ya existe"
+        : `Error: ${error.message}`,
+    });
+  }
+}
+
+async function validateCoupon(call, callback) {
+  const { code, order_amount } = call.request;
+  console.log(
+    `🔍 [Payment] Validando cupón: ${code} para monto Q${order_amount}`,
+  );
+  try {
+    const result = await pool.query(
+      "SELECT * FROM coupons WHERE code = UPPER($1)",
+      [code],
+    );
+    if (result.rows.length === 0) {
+      return callback(null, {
+        valid: false,
+        message: "Cupón no encontrado",
+        discount_amount: 0,
+        final_amount: order_amount,
+      });
+    }
+    const c = result.rows[0];
+    if (!c.active) {
+      return callback(null, {
+        valid: false,
+        message: "Cupón inactivo",
+        discount_amount: 0,
+        final_amount: order_amount,
+      });
+    }
+    if (c.expires_at && new Date(c.expires_at) < new Date()) {
+      return callback(null, {
+        valid: false,
+        message: "Cupón expirado",
+        discount_amount: 0,
+        final_amount: order_amount,
+      });
+    }
+    if (c.current_uses >= c.max_uses) {
+      return callback(null, {
+        valid: false,
+        message: "Cupón agotado",
+        discount_amount: 0,
+        final_amount: order_amount,
+      });
+    }
+    if (order_amount < parseFloat(c.min_order_amount)) {
+      return callback(null, {
+        valid: false,
+        message: `El monto mínimo para este cupón es Q${c.min_order_amount}`,
+        discount_amount: 0,
+        final_amount: order_amount,
+      });
+    }
+
+    let discount = 0;
+    if (c.discount_type === "PORCENTAJE") {
+      discount = (order_amount * parseFloat(c.discount_value)) / 100;
+      if (c.max_discount && discount > parseFloat(c.max_discount)) {
+        discount = parseFloat(c.max_discount);
+      }
+    } else {
+      discount = parseFloat(c.discount_value);
+    }
+    const finalAmount = Math.max(0, order_amount - discount);
+
+    // Incrementar uso
+    await pool.query(
+      "UPDATE coupons SET current_uses = current_uses + 1 WHERE id = $1",
+      [c.id],
+    );
+
+    callback(null, {
+      valid: true,
+      message: `Cupón aplicado: -Q${discount.toFixed(2)}`,
+      discount_amount: discount,
+      final_amount: finalAmount,
+      coupon: mapCoupon(c),
+    });
+  } catch (error) {
+    console.error("❌ [Payment] Error validando cupón:", error.message);
+    callback(null, {
+      valid: false,
+      message: `Error: ${error.message}`,
+      discount_amount: 0,
+      final_amount: order_amount,
+    });
+  }
+}
+
+async function listCoupons(call, callback) {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM coupons ORDER BY created_at DESC",
+    );
+    callback(null, { success: true, coupons: result.rows.map(mapCoupon) });
+  } catch (error) {
+    callback(null, { success: false, coupons: [] });
+  }
+}
+
+async function deleteCoupon(call, callback) {
+  try {
+    const { id } = call.request;
+    await pool.query("DELETE FROM coupons WHERE id = $1", [id]);
+    callback(null, { success: true, message: "Cupón eliminado" });
+  } catch (error) {
+    callback(null, { success: false, message: `Error: ${error.message}` });
+  }
+}
+
+function mapCoupon(c) {
+  return {
+    id: c.id,
+    code: c.code,
+    description: c.description || "",
+    discount_type: c.discount_type,
+    discount_value: parseFloat(c.discount_value),
+    min_order_amount: parseFloat(c.min_order_amount || 0),
+    max_discount: c.max_discount ? parseFloat(c.max_discount) : 0,
+    max_uses: c.max_uses,
+    current_uses: c.current_uses,
+    active: c.active,
+    expires_at: c.expires_at ? c.expires_at.toISOString() : "",
+    created_at: c.created_at ? c.created_at.toISOString() : "",
+  };
+}
+
+// =====================================================
 // INICIAR SERVIDOR
 // =====================================================
 
@@ -340,6 +504,10 @@ async function startServer() {
     GetPaymentStatus: getPaymentStatus,
     ApproveRefund: approveRefund,
     ListPayments: listPayments,
+    CreateCoupon: createCoupon,
+    ValidateCoupon: validateCoupon,
+    ListCoupons: listCoupons,
+    DeleteCoupon: deleteCoupon,
   });
 
   server.bindAsync(

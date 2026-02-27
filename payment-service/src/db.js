@@ -60,6 +60,27 @@ const initDB = async () => {
       `CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);`,
     );
 
+    // Tabla de cupones
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS coupons (
+        id SERIAL PRIMARY KEY,
+        code VARCHAR(50) NOT NULL UNIQUE,
+        description TEXT,
+        discount_type VARCHAR(20) NOT NULL DEFAULT 'PORCENTAJE',
+        discount_value DECIMAL(10, 2) NOT NULL CHECK (discount_value > 0),
+        min_order_amount DECIMAL(10, 2) DEFAULT 0,
+        max_discount DECIMAL(10, 2),
+        max_uses INTEGER DEFAULT 1,
+        current_uses INTEGER DEFAULT 0,
+        active BOOLEAN DEFAULT true,
+        expires_at TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_coupons_code ON coupons(code);`,
+    );
+
     // Trigger para updated_at
     await client.query(`
       CREATE OR REPLACE FUNCTION update_payments_updated_at()
