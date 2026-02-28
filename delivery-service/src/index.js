@@ -28,6 +28,9 @@ const startServer = async () => {
     GetDeliveryByOrder: handlers.getDeliveryByOrder,
     ListAvailableOrders: handlers.listAvailableOrders,
     ListMyDeliveries: handlers.listMyDeliveries,
+    UploadEvidence: handlers.uploadEvidence,
+    GetEvidence: handlers.getEvidence,
+    ListDeliveredOrders: handlers.listDeliveredOrders,
   });
 
   const port = process.env.PORT || "50054";
