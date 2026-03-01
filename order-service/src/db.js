@@ -36,6 +36,23 @@ const initDB = async () => {
         quantity INTEGER DEFAULT 1,
         price DECIMAL(10, 2)
       );
+
+      CREATE TABLE IF NOT EXISTS ratings (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        user_name VARCHAR(255),
+        entity_type VARCHAR(20) NOT NULL,
+        entity_id INTEGER NOT NULL,
+        entity_name VARCHAR(255),
+        stars INTEGER CHECK (stars >= 1 AND stars <= 5),
+        comment TEXT,
+        recommended BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(order_id, entity_type, entity_id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_ratings_entity ON ratings(entity_type, entity_id);
     `);
     console.log("[Order-Service] Database tables initialized");
   } catch (error) {

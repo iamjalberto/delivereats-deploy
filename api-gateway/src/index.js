@@ -8,6 +8,7 @@ const orderRoutes = require("./routes/orders");
 const deliveryRoutes = require("./routes/delivery");
 const paymentRoutes = require("./routes/payments");
 const fxRoutes = require("./routes/fx");
+const ratingRoutes = require("./routes/ratings");
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/delivery", deliveryRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/fx", fxRoutes);
+app.use("/api/ratings", ratingRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {

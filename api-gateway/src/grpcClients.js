@@ -63,6 +63,13 @@ const paymentClient = new paymentProto.PaymentService(
   grpc.credentials.createInsecure(),
 );
 
+// Rating Service Client (Fase 2) - hosted in order-service
+const ratingProto = loadProto("rating.proto", "rating");
+const ratingClient = new ratingProto.RatingService(
+  process.env.ORDER_SERVICE_HOST || "order-service:50053",
+  grpc.credentials.createInsecure(),
+);
+
 // Helper para promisificar llamadas gRPC
 const grpcCall = (client, method, request) => {
   return new Promise((resolve, reject) => {
@@ -81,5 +88,6 @@ module.exports = {
   notificationClient,
   fxClient,
   paymentClient,
+  ratingClient,
   grpcCall,
 };

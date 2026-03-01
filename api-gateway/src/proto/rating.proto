@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package rating;
+
+service RatingService {
+  rpc CreateRating (CreateRatingRequest) returns (RatingResponse);
+  rpc GetRatingsByRestaurant (GetRatingsByEntityRequest) returns (ListRatingsResponse);
+  rpc GetRatingsByDelivery (GetRatingsByEntityRequest) returns (ListRatingsResponse);
+  rpc GetRatingsByProduct (GetRatingsByEntityRequest) returns (ListRatingsResponse);
+  rpc GetAverageRating (GetRatingsByEntityRequest) returns (AverageRatingResponse);
+}
+
+message CreateRatingRequest {
+  int32 order_id = 1;
+  int32 user_id = 2;
+  string user_name = 3;
+  string entity_type = 4; // RESTAURANTE, REPARTIDOR, PRODUCTO
+  int32 entity_id = 5;
+  string entity_name = 6;
+  int32 stars = 7;          // 1-5 para restaurante/repartidor
+  string comment = 8;
+  bool recommended = 9;      // para producto: recomendado o no
+}
+
+message RatingResponse {
+  bool success = 1;
+  string message = 2;
+  Rating rating = 3;
+}
+
+message GetRatingsByEntityRequest {
+  int32 entity_id = 1;
+}
+
+message ListRatingsResponse {
+  bool success = 1;
+  repeated Rating ratings = 2;
+  double average_stars = 3;
+  int32 total_ratings = 4;
+}
+
+message AverageRatingResponse {
+  bool success = 1;
+  double average_stars = 2;
+  int32 total_ratings = 3;
+  int32 recommended_count = 4;
+  int32 not_recommended_count = 5;
+}
+
+message Rating {
+  int32 id = 1;
+  int32 order_id = 2;
+  int32 user_id = 3;
+  string user_name = 4;
+  string entity_type = 5;
+  int32 entity_id = 6;
+  string entity_name = 7;
+  int32 stars = 8;
+  string comment = 9;
+  bool recommended = 10;
+  string created_at = 11;
+}
