@@ -49,6 +49,20 @@ const notificationClient = new notificationProto.NotificationService(
   grpc.credentials.createInsecure(),
 );
 
+// FX Service Client (P5)
+const fxProto = loadProto("fx_service.proto", "fx");
+const fxClient = new fxProto.FXService(
+  process.env.FX_SERVICE_HOST || "fx-service:50056",
+  grpc.credentials.createInsecure(),
+);
+
+// Payment Service Client (P5)
+const paymentProto = loadProto("payment.proto", "payment");
+const paymentClient = new paymentProto.PaymentService(
+  process.env.PAYMENT_SERVICE_HOST || "payment-service:50057",
+  grpc.credentials.createInsecure(),
+);
+
 // Helper para promisificar llamadas gRPC
 const grpcCall = (client, method, request) => {
   return new Promise((resolve, reject) => {
@@ -65,5 +79,7 @@ module.exports = {
   orderClient,
   deliveryClient,
   notificationClient,
+  fxClient,
+  paymentClient,
   grpcCall,
 };

@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package fx;
+
+service FXService {
+  rpc GetExchangeRate(ExchangeRateRequest) returns (ExchangeRateResponse);
+  rpc GetMultipleRates(MultipleRatesRequest) returns (MultipleRatesResponse);
+}
+
+message ExchangeRateRequest {
+  string from_currency = 1;
+  string to_currency = 2;
+}
+
+message ExchangeRateResponse {
+  string from_currency = 1;
+  string to_currency = 2;
+  double rate = 3;
+  int64 timestamp = 4;
+  bool from_cache = 5;
+  bool is_fallback = 6;
+}
+
+message MultipleRatesRequest {
+  string base_currency = 1;
+  repeated string target_currencies = 2;
+}
+
+message MultipleRatesResponse {
+  string base_currency = 1;
+  map<string, double> rates = 2;
+  int64 timestamp = 3;
+  bool from_cache = 4;
+}

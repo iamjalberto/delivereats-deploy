@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package payment;
+
+service PaymentService {
+  rpc ProcessPayment(ProcessPaymentRequest) returns (ProcessPaymentResponse);
+  rpc GetPaymentStatus(GetPaymentStatusRequest) returns (GetPaymentStatusResponse);
+  rpc ApproveRefund(ApproveRefundRequest) returns (ApproveRefundResponse);
+  rpc ListPayments(ListPaymentsRequest) returns (ListPaymentsResponse);
+}
+
+enum PaymentType {
+  TARJETA_CREDITO = 0;
+  TARJETA_DEBITO = 1;
+  CARTERA_DIGITAL = 2;
+}
+
+enum PaymentStatus {
+  PENDIENTE = 0;
+  PAGADO = 1;
+  RECHAZADO = 2;
+  REEMBOLSADO = 3;
+}
+
+message ProcessPaymentRequest {
+  int32 order_id = 1;
+  int32 customer_id = 2;
+  double amount = 3;
+  string currency = 4;
+  PaymentType payment_type = 5;
+  string card_number = 6;
+  string card_holder_name = 7;
+  string card_expiry = 8;
+  string card_cvv = 9;
+  double converted_amount = 10;
+  string converted_currency = 11;
+  double exchange_rate = 12;
+}
+
+message ProcessPaymentResponse {
+  bool success = 1;
+  string message = 2;
+  int32 payment_id = 3;
+  string transaction_id = 4;
+  PaymentStatus status = 5;
+}
+
+message GetPaymentStatusRequest {
+  int32 order_id = 1;
+}
+
+message GetPaymentStatusResponse {
+  bool success = 1;
+  string message = 2;
+  PaymentData payment = 3;
+}
+
+message ApproveRefundRequest {
+  int32 order_id = 1;
+  int32 admin_id = 2;
+  string reason = 3;
+}
+
+message ApproveRefundResponse {
+  bool success = 1;
+  string message = 2;
+  PaymentStatus new_status = 3;
+}
+
+message ListPaymentsRequest {
+  string status_filter = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message ListPaymentsResponse {
+  bool success = 1;
+  repeated PaymentData payments = 2;
+  int32 total = 3;
+}
+
+message PaymentData {
+  int32 id = 1;
+  int32 order_id = 2;
+  int32 customer_id = 3;
+  double amount = 4;
+  string currency = 5;
+  string payment_type = 6;
+  string card_last_four = 7;
+  string card_holder_name = 8;
+  string status = 9;
+  string transaction_id = 10;
+  string created_at = 11;
+  string updated_at = 12;
+  int32 refund_approved_by = 13;
+  string refund_reason = 14;
+}
