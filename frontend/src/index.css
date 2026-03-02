@@ -232,6 +232,23 @@ body {
   color: #ad1457;
 }
 
+.badge-pagada {
+  background: #e8eaf6;
+  color: #283593;
+}
+.badge-completado {
+  background: #e0f2f1;
+  color: #00695c;
+}
+.badge-pendiente {
+  background: #fff8e1;
+  color: #f57f17;
+}
+.badge-reembolsado {
+  background: #f3e5f5;
+  color: #6a1b9a;
+}
+
 /* Auth pages */
 .auth-page {
   display: flex;

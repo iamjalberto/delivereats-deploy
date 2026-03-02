@@ -24,8 +24,18 @@ const Navbar = () => {
           </>
         )}
         {user?.role === "RESTAURANTE" && <Link to="/">Mi Panel</Link>}
-        {user?.role === "REPARTIDOR" && <Link to="/">Entregas</Link>}
-        {user?.role === "ADMINISTRADOR" && <Link to="/">Admin</Link>}
+        {user?.role === "REPARTIDOR" && (
+          <>
+            <Link to="/">Entregas</Link>
+            <Link to="/delivery-evidence">📸 Evidencia</Link>
+          </>
+        )}
+        {user?.role === "ADMINISTRADOR" && (
+          <>
+            <Link to="/">Admin</Link>
+            <Link to="/admin/payments">💰 Pagos</Link>
+          </>
+        )}
         <button onClick={handleLogout}>Cerrar Sesión</button>
       </div>
     </nav>

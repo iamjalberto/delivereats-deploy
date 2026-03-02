@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import toast from "react-hot-toast";
 
 const MyOrders = () => {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -93,13 +95,21 @@ const MyOrders = () => {
               </p>
             )}
             {["CREADA", "EN_PROCESO"].includes(o.status) && (
-              <button
-                className="btn btn-danger btn-sm"
-                style={{ marginTop: "0.5rem" }}
-                onClick={() => handleCancel(o.id)}
-              >
-                Cancelar Orden
-              </button>
+              <div className="btn-group">
+                <button
+                  className="btn btn-primary btn-sm"
+                  style={{ width: "auto" }}
+                  onClick={() => navigate(`/payment?order_id=${o.id}`)}
+                >
+                  💳 Pagar
+                </button>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleCancel(o.id)}
+                >
+                  Cancelar Orden
+                </button>
+              </div>
             )}
           </div>
         ))

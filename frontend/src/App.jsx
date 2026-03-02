@@ -11,6 +11,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import RestaurantMenu from "./pages/RestaurantMenu";
 import CreateOrder from "./pages/CreateOrder";
 import MyOrders from "./pages/MyOrders";
+import PaymentPage from "./pages/PaymentPage";
+import DeliveryEvidence from "./pages/DeliveryEvidence";
+import AdminPayments from "./pages/AdminPayments";
 
 function App() {
   const { user, loading } = useAuth();
@@ -59,6 +62,36 @@ function App() {
           <Route
             path="/my-orders"
             element={user ? <MyOrders /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/payment"
+            element={
+              user && user.role === "CLIENTE" ? (
+                <PaymentPage />
+              ) : (
+                <Navigate to="/" />
+              )
+            }
+          />
+          <Route
+            path="/delivery-evidence"
+            element={
+              user && user.role === "REPARTIDOR" ? (
+                <DeliveryEvidence />
+              ) : (
+                <Navigate to="/" />
+              )
+            }
+          />
+          <Route
+            path="/admin/payments"
+            element={
+              user && user.role === "ADMINISTRADOR" ? (
+                <AdminPayments />
+              ) : (
+                <Navigate to="/" />
+              )
+            }
           />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
