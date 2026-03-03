@@ -83,6 +83,48 @@ services:
     ports:
       - "50055:50055"
 
+  # ==================== P5: FX SERVICE (Python) ====================
+  fx-service:
+    build:
+      context: ./fx-service
+      dockerfile: Dockerfile
+    environment:
+      GRPC_PORT: 50056
+      FLASK_PORT: 5000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      EXCHANGE_API_KEY: ""
+    depends_on:
+      - redis
+    ports:
+      - "50056:50056"
+      - "5000:5000"
+
+  # ==================== P5: PAYMENT SERVICE ====================
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    environment:
+      PORT: 50057
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: payment_db
+    ports:
+      - "50057:50057"
+    volumes:
+      - payment-db-data:/var/lib/postgresql/data
+
+  # ==================== P5: REDIS (Cache para FX) ====================
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
   # ==================== API GATEWAY ====================
   api-gateway:
     build:
@@ -96,14 +138,20 @@ services:
       ORDER_SERVICE_HOST: order-service:50053
       DELIVERY_SERVICE_HOST: delivery-service:50054
       NOTIFICATION_SERVICE_HOST: notification-service:50055
+      FX_SERVICE_HOST: fx-service:50056
+      PAYMENT_SERVICE_HOST: payment-service:50057
     depends_on:
       - auth-service
       - restaurant-catalog-service
       - order-service
       - delivery-service
       - notification-service
+      - fx-service
+      - payment-service
     ports:
       - "3000:3000"
+    volumes:
+      - evidence-uploads:/app/uploads
 
   # ==================== FRONTEND ====================
   frontend:
@@ -120,3 +168,6 @@ volumes:
   restaurant-db-data:
   order-db-data:
   delivery-db-data:
+  payment-db-data:
+  redis-data:
+  evidence-uploads:
