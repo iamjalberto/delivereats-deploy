@@ -109,16 +109,10 @@ const PaymentPage = () => {
       const res = await api.post("/payments", payload);
 
       if (res.data.success) {
-        const payment = res.data.payment;
-        if (payment.status === "COMPLETADO") {
-          toast.success("¡Pago procesado exitosamente!");
-          navigate("/my-orders");
-        } else if (payment.status === "RECHAZADO") {
-          toast.error(`Pago rechazado: ${res.data.message}`);
-        } else {
-          toast.success("Pago en proceso");
-          navigate("/my-orders");
-        }
+        toast.success("¡Pago procesado exitosamente!");
+        navigate("/my-orders");
+      } else if (res.data.message) {
+        toast.error(res.data.message);
       } else {
         toast.error(res.data.message || "Error al procesar pago");
       }

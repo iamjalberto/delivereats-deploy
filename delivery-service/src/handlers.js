@@ -241,17 +241,6 @@ const listMyDeliveries = async (call, callback) => {
   }
 };
 
-module.exports = {
-  acceptOrder,
-  updateDeliveryStatus,
-  getDeliveryByOrder,
-  listAvailableOrders,
-  listMyDeliveries,
-  uploadEvidence,
-  getEvidence,
-  listDeliveredOrders,
-};
-
 // ======== Evidence Handlers (P5) ========
 
 async function uploadEvidence(call, callback) {
@@ -412,3 +401,14 @@ async function listDeliveredOrders(call, callback) {
     callback(null, { deliveries: [] });
   }
 }
+
+module.exports = {
+  acceptOrder,
+  updateDeliveryStatus,
+  getDeliveryByOrder,
+  listAvailableOrders,
+  listMyDeliveries,
+  uploadEvidence,
+  getEvidence,
+  listDeliveredOrders,
+};

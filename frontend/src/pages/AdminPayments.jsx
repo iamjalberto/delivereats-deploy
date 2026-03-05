@@ -17,7 +17,7 @@ const AdminPayments = () => {
   const fetchData = async () => {
     try {
       const [paymentsRes, deliveriesRes] = await Promise.all([
-        api.get("/payments"),
+        api.get("/payments/all"),
         api.get("/delivery/all"),
       ]);
       setPayments(paymentsRes.data.payments || []);
@@ -42,7 +42,7 @@ const AdminPayments = () => {
     }
   };
 
-  const handleRefund = async (paymentId) => {
+  const handleRefund = async (orderId, paymentId) => {
     if (!confirm("¿Estás seguro de aprobar esta devolución?")) return;
     setRefunding(paymentId);
     try {
@@ -50,7 +50,7 @@ const AdminPayments = () => {
         prompt("Razón de la devolución:") ||
         "Devolución aprobada por administrador";
       const res = await api.post("/payments/refund", {
-        payment_id: paymentId,
+        payment_id: orderId,
         reason,
       });
       if (res.data.success) {
@@ -68,7 +68,7 @@ const AdminPayments = () => {
 
   const getPaymentStatusBadge = (status) => {
     const map = {
-      COMPLETADO: "badge-entregada",
+      PAGADO: "badge-entregada",
       PENDIENTE: "badge-creada",
       RECHAZADO: "badge-cancelada",
       REEMBOLSADO: "badge-rechazada",
@@ -160,10 +160,10 @@ const AdminPayments = () => {
                         >
                           📸 Evidencia
                         </button>
-                        {p.status === "COMPLETADO" && (
+                        {p.status === "PAGADO" && (
                           <button
                             className="btn btn-warning btn-sm"
-                            onClick={() => handleRefund(p.id)}
+                            onClick={() => handleRefund(p.order_id, p.id)}
                             disabled={refunding === p.id}
                           >
                             {refunding === p.id ? "..." : "💸 Reembolsar"}

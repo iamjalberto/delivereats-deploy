@@ -17,9 +17,19 @@ router.get("/rate", authenticateToken, async (req, res) => {
     const response = await grpcCall(fxClient, "GetExchangeRate", {
       from_currency: from.toUpperCase(),
       to_currency: to.toUpperCase(),
-      amount: parseFloat(amount) || 1.0,
     });
-    res.json(response);
+    const parsedAmount = parseFloat(amount) || 1.0;
+    const rate = response.rate || 0;
+    res.json({
+      success: true,
+      from_currency: response.from_currency,
+      to_currency: response.to_currency,
+      rate: rate,
+      converted_amount: parsedAmount * rate,
+      timestamp: response.timestamp,
+      from_cache: response.from_cache,
+      is_fallback: response.is_fallback,
+    });
   } catch (error) {
     console.error("[API-Gateway] FX rate error:", error);
     res
@@ -45,7 +55,10 @@ router.get("/rates", authenticateToken, async (req, res) => {
       base_currency: base.toUpperCase(),
       target_currencies: currencyList,
     });
-    res.json(response);
+    res.json({
+      success: true,
+      ...response,
+    });
   } catch (error) {
     console.error("[API-Gateway] FX multiple rates error:", error);
     res
