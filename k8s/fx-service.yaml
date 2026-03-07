@@ -1,0 +1,76 @@
+# ============================================
+# FX Service (Python) - Deployment + Service
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fx-service
+  namespace: delivereats
+  labels:
+    app: fx-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fx-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: fx-service
+    spec:
+      containers:
+        - name: fx-service
+          image: ghcr.io/jalbertochigua/delivereats/fx-service:latest
+          ports:
+            - containerPort: 50056
+            - containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: delivereats-config
+            - secretRef:
+                name: delivereats-secrets
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fx-service
+  namespace: delivereats
+  labels:
+    app: fx-service
+spec:
+  selector:
+    app: fx-service
+  ports:
+    - name: grpc
+      port: 50056
+      targetPort: 50056
+      protocol: TCP
+    - name: http
+      port: 5000
+      targetPort: 5000
+      protocol: TCP
+  type: ClusterIP

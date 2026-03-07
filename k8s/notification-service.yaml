@@ -1,0 +1,61 @@
+# ============================================
+# Notification Service - Deployment + Service
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: delivereats
+  labels:
+    app: notification-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: ghcr.io/jalbertochigua/delivereats/notification-service:latest
+          ports:
+            - containerPort: 50055
+          envFrom:
+            - configMapRef:
+                name: delivereats-config
+            - secretRef:
+                name: delivereats-secrets
+          env:
+            - name: PORT
+              value: "50055"
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: delivereats
+  labels:
+    app: notification-service
+spec:
+  selector:
+    app: notification-service
+  ports:
+    - port: 50055
+      targetPort: 50055
+      protocol: TCP
+  type: ClusterIP

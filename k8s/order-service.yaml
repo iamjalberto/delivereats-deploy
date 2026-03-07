@@ -1,0 +1,75 @@
+# ============================================
+# Order Service - Deployment + Service
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: delivereats
+  labels:
+    app: order-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: ghcr.io/jalbertochigua/delivereats/order-service:latest
+          ports:
+            - containerPort: 50053
+          envFrom:
+            - configMapRef:
+                name: delivereats-config
+            - secretRef:
+                name: delivereats-secrets
+          env:
+            - name: PORT
+              value: "50053"
+            - name: DB_NAME
+              value: "order_db"
+          volumeMounts:
+            - name: order-db-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U postgres"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      volumes:
+        - name: order-db-data
+          persistentVolumeClaim:
+            claimName: order-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: delivereats
+  labels:
+    app: order-service
+spec:
+  selector:
+    app: order-service
+  ports:
+    - port: 50053
+      targetPort: 50053
+      protocol: TCP
+  type: ClusterIP

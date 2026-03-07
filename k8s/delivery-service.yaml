@@ -1,0 +1,77 @@
+# ============================================
+# Delivery Service - Deployment + Service
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: delivery-service
+  namespace: delivereats
+  labels:
+    app: delivery-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: delivery-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: delivery-service
+    spec:
+      containers:
+        - name: delivery-service
+          image: ghcr.io/jalbertochigua/delivereats/delivery-service:latest
+          ports:
+            - containerPort: 50054
+          envFrom:
+            - configMapRef:
+                name: delivereats-config
+            - secretRef:
+                name: delivereats-secrets
+          env:
+            - name: PORT
+              value: "50054"
+            - name: DB_NAME
+              value: "delivery_db"
+            - name: ORDER_SERVICE_HOST
+              value: "order-service:50053"
+          volumeMounts:
+            - name: delivery-db-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U postgres"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      volumes:
+        - name: delivery-db-data
+          persistentVolumeClaim:
+            claimName: delivery-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: delivery-service
+  namespace: delivereats
+  labels:
+    app: delivery-service
+spec:
+  selector:
+    app: delivery-service
+  ports:
+    - port: 50054
+      targetPort: 50054
+      protocol: TCP
+  type: ClusterIP

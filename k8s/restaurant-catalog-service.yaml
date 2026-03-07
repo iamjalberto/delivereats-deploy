@@ -1,0 +1,75 @@
+# ============================================
+# Restaurant Catalog Service - Deployment + Service
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restaurant-catalog-service
+  namespace: delivereats
+  labels:
+    app: restaurant-catalog-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: restaurant-catalog-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: restaurant-catalog-service
+    spec:
+      containers:
+        - name: restaurant-catalog-service
+          image: ghcr.io/jalbertochigua/delivereats/restaurant-catalog-service:latest
+          ports:
+            - containerPort: 50052
+          envFrom:
+            - configMapRef:
+                name: delivereats-config
+            - secretRef:
+                name: delivereats-secrets
+          env:
+            - name: PORT
+              value: "50052"
+            - name: DB_NAME
+              value: "restaurant_db"
+          volumeMounts:
+            - name: restaurant-db-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U postgres"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      volumes:
+        - name: restaurant-db-data
+          persistentVolumeClaim:
+            claimName: restaurant-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: restaurant-catalog-service
+  namespace: delivereats
+  labels:
+    app: restaurant-catalog-service
+spec:
+  selector:
+    app: restaurant-catalog-service
+  ports:
+    - port: 50052
+      targetPort: 50052
+      protocol: TCP
+  type: ClusterIP

@@ -1,0 +1,75 @@
+# ============================================
+# Payment Service - Deployment + Service
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: delivereats
+  labels:
+    app: payment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      containers:
+        - name: payment-service
+          image: ghcr.io/jalbertochigua/delivereats/payment-service:latest
+          ports:
+            - containerPort: 50057
+          envFrom:
+            - configMapRef:
+                name: delivereats-config
+            - secretRef:
+                name: delivereats-secrets
+          env:
+            - name: PORT
+              value: "50057"
+            - name: DB_NAME
+              value: "payment_db"
+          volumeMounts:
+            - name: payment-db-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U postgres"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      volumes:
+        - name: payment-db-data
+          persistentVolumeClaim:
+            claimName: payment-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+  namespace: delivereats
+  labels:
+    app: payment-service
+spec:
+  selector:
+    app: payment-service
+  ports:
+    - port: 50057
+      targetPort: 50057
+      protocol: TCP
+  type: ClusterIP
