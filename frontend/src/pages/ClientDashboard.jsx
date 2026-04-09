@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 const ClientDashboard = () => {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [ratings, setRatings] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,7 +16,27 @@ const ClientDashboard = () => {
   const fetchRestaurants = async () => {
     try {
       const res = await api.get("/restaurants");
-      setRestaurants(res.data.restaurants || []);
+      const list = res.data.restaurants || [];
+      setRestaurants(list);
+
+      // Fetch average ratings for each restaurant
+      const ratingsMap = {};
+      await Promise.all(
+        list.map(async (r) => {
+          try {
+            const avgRes = await api.get(`/ratings/average/${r.id}`);
+            if (avgRes.data) {
+              ratingsMap[r.id] = {
+                average: avgRes.data.average_stars || 0,
+                total: avgRes.data.total_ratings || 0,
+              };
+            }
+          } catch {
+            // no ratings yet
+          }
+        }),
+      );
+      setRatings(ratingsMap);
     } catch (error) {
       const msg =
         error.response?.data?.message ||
@@ -24,6 +45,17 @@ const ClientDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const renderStars = (avg) => {
+    const full = Math.floor(avg);
+    const half = avg - full >= 0.5;
+    let stars = "";
+    for (let i = 0; i < full; i++) stars += "★";
+    if (half) stars += "½";
+    const empty = 5 - full - (half ? 1 : 0);
+    for (let i = 0; i < empty; i++) stars += "☆";
+    return stars;
   };
 
   if (loading) return <div className="loading">Cargando restaurantes...</div>;
@@ -41,6 +73,15 @@ const ClientDashboard = () => {
           {restaurants.map((r) => (
             <div key={r.id} className="card">
               <h3>{r.name}</h3>
+              {ratings[r.id] && ratings[r.id].total > 0 && (
+                <p style={{ color: "#ffc107", marginBottom: "0.3rem" }}>
+                  {renderStars(ratings[r.id].average)}{" "}
+                  <span style={{ color: "#666", fontSize: "0.85rem" }}>
+                    ({ratings[r.id].average.toFixed(1)} - {ratings[r.id].total}{" "}
+                    reseñas)
+                  </span>
+                </p>
+              )}
               <p>📍 {r.address || "Sin dirección"}</p>
               <p>📞 {r.phone || "Sin teléfono"}</p>
               <p>🕐 {r.schedule || "Sin horario"}</p>

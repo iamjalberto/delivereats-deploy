@@ -8,6 +8,9 @@ const RestaurantMenu = () => {
   const [restaurant, setRestaurant] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [avgRating, setAvgRating] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [showReviews, setShowReviews] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -21,6 +24,18 @@ const RestaurantMenu = () => {
       ]);
       setRestaurant(resR.data.restaurant);
       setMenuItems(resM.data.items || []);
+
+      // Fetch ratings
+      try {
+        const [avgRes, rRes] = await Promise.all([
+          api.get(`/ratings/average/${id}`),
+          api.get(`/ratings/restaurant/${id}`),
+        ]);
+        if (avgRes.data) setAvgRating(avgRes.data);
+        setReviews(rRes.data.ratings || []);
+      } catch {
+        // no ratings yet
+      }
     } catch (error) {
       const msg =
         error.response?.data?.message ||
@@ -29,6 +44,12 @@ const RestaurantMenu = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const renderStars = (n) => {
+    let s = "";
+    for (let i = 1; i <= 5; i++) s += i <= n ? "★" : "☆";
+    return s;
   };
 
   if (loading) return <div className="loading">Cargando menú...</div>;
@@ -42,6 +63,54 @@ const RestaurantMenu = () => {
             📍 {restaurant.address || "-"} | 📞 {restaurant.phone || "-"} | 🕐{" "}
             {restaurant.schedule || "-"}
           </p>
+          {avgRating && avgRating.total_ratings > 0 && (
+            <div style={{ marginTop: "0.5rem" }}>
+              <span style={{ color: "#ffc107", fontSize: "1.2rem" }}>
+                {renderStars(Math.round(avgRating.average_stars))}
+              </span>{" "}
+              <span style={{ color: "#666" }}>
+                {parseFloat(avgRating.average_stars).toFixed(1)} (
+                {avgRating.total_ratings} reseñas)
+              </span>
+              <button
+                className="btn btn-info btn-sm"
+                style={{ marginLeft: "1rem" }}
+                onClick={() => setShowReviews(!showReviews)}
+              >
+                {showReviews ? "Ocultar Reseñas" : "Ver Reseñas"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {showReviews && reviews.length > 0 && (
+        <div
+          className="card"
+          style={{ marginBottom: "1rem", background: "#fffde7" }}
+        >
+          <h3 style={{ marginBottom: "0.5rem" }}>📝 Reseñas</h3>
+          {reviews.map((r, idx) => (
+            <div
+              key={idx}
+              style={{
+                padding: "0.5rem 0",
+                borderBottom:
+                  idx < reviews.length - 1 ? "1px solid #eee" : "none",
+              }}
+            >
+              <p>
+                <strong>{r.user_name || "Usuario"}</strong>{" "}
+                <span style={{ color: "#ffc107" }}>{renderStars(r.stars)}</span>
+              </p>
+              {r.comment && <p style={{ color: "#555" }}>{r.comment}</p>}
+              <p style={{ fontSize: "0.75rem", color: "#999" }}>
+                {r.created_at
+                  ? new Date(r.created_at).toLocaleDateString()
+                  : ""}
+              </p>
+            </div>
+          ))}
         </div>
       )}
 

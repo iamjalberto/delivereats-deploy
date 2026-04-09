@@ -49,7 +49,7 @@ jobs:
 
       - name: Run unit tests
         working-directory: ${{ matrix.service }}
-        run: npm test -- --coverage --forceExit || echo "⚠️ No tests configured yet"
+        run: npm test -- --coverage --forceExit
         continue-on-error: false
 
   test-python:
@@ -72,7 +72,7 @@ jobs:
 
       - name: Run tests
         working-directory: fx-service
-        run: pytest tests/ -v --cov=app --cov-report=term-missing || echo "⚠️ No tests configured yet"
+        run: pytest tests/ -v --cov=app --cov-report=term-missing
         continue-on-error: false
 
   # ==========================================

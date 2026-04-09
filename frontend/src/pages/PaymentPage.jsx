@@ -22,6 +22,11 @@ const PaymentPage = () => {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
 
+  // Coupon
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+
   const currencies = ["GTQ", "USD", "EUR", "MXN", "GBP", "JPY"];
 
   useEffect(() => {
@@ -39,7 +44,7 @@ const PaymentPage = () => {
     } else {
       setFxRate(null);
     }
-  }, [currency, order]);
+  }, [currency, order, couponApplied]);
 
   const fetchOrder = async () => {
     try {
@@ -58,11 +63,21 @@ const PaymentPage = () => {
     }
   };
 
+  const getEffectiveTotal = () => {
+    if (!order) return 0;
+    let total = parseFloat(order.total);
+    if (couponApplied) {
+      total = Math.max(0, total - couponApplied.discount_amount);
+    }
+    return total;
+  };
+
   const fetchExchangeRate = async () => {
     setFxLoading(true);
     try {
+      const effectiveTotal = getEffectiveTotal();
       const res = await api.get(
-        `/fx/rate?from=GTQ&to=${currency}&amount=${order.total}`,
+        `/fx/rate?from=GTQ&to=${currency}&amount=${effectiveTotal}`,
       );
       if (res.data.success) {
         setFxRate({
@@ -80,6 +95,44 @@ const PaymentPage = () => {
     }
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error("Ingresa un código de cupón");
+      return;
+    }
+    setCouponLoading(true);
+    try {
+      const res = await api.post("/payments/coupons/validate", {
+        code: couponCode.trim().toUpperCase(),
+        order_amount: parseFloat(order.total),
+      });
+      if (res.data.valid) {
+        setCouponApplied({
+          code: couponCode.trim().toUpperCase(),
+          discount_type: res.data.discount_type,
+          discount_value: res.data.discount_value,
+          discount_amount: res.data.discount_amount,
+        });
+        toast.success(
+          `¡Cupón aplicado! Descuento: Q${parseFloat(res.data.discount_amount).toFixed(2)}`,
+        );
+      } else {
+        toast.error(res.data.message || "Cupón inválido o expirado");
+        setCouponApplied(null);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Error al validar cupón");
+      setCouponApplied(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponApplied(null);
+    setCouponCode("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -92,12 +145,17 @@ const PaymentPage = () => {
 
     setProcessing(true);
     try {
+      const effectiveTotal = getEffectiveTotal();
       const payload = {
         order_id: parseInt(orderId),
         payment_type: paymentType,
-        amount: parseFloat(order.total),
+        amount: effectiveTotal,
         currency: currency,
       };
+
+      if (couponApplied) {
+        payload.coupon_code = couponApplied.code;
+      }
 
       if (paymentType !== "CARTERA_DIGITAL") {
         payload.card_number = cardNumber.replace(/\s/g, "");
@@ -127,9 +185,8 @@ const PaymentPage = () => {
   if (loading) return <div className="loading">Cargando orden...</div>;
   if (!order) return null;
 
-  const displayAmount = fxRate
-    ? fxRate.convertedAmount
-    : parseFloat(order.total);
+  const effectiveTotal = getEffectiveTotal();
+  const displayAmount = fxRate ? fxRate.convertedAmount : effectiveTotal;
   const displayCurrency = currency;
 
   return (
@@ -158,13 +215,78 @@ const PaymentPage = () => {
             fontWeight: "bold",
           }}
         >
-          Total: Q{parseFloat(order.total).toFixed(2)}
+          Subtotal: Q{parseFloat(order.total).toFixed(2)}
         </p>
+        {couponApplied && (
+          <p style={{ color: "#28a745", fontWeight: "bold" }}>
+            🏷️ Descuento ({couponApplied.code}): -Q
+            {parseFloat(couponApplied.discount_amount).toFixed(2)}
+          </p>
+        )}
+        {couponApplied && (
+          <p
+            style={{ fontSize: "1.3rem", fontWeight: "bold", color: "#ff6b35" }}
+          >
+            Total: Q{effectiveTotal.toFixed(2)}
+          </p>
+        )}
       </div>
 
       <div className="form-container" style={{ maxWidth: "600px" }}>
         <h2>Datos de Pago</h2>
         <form onSubmit={handleSubmit}>
+          {/* Cupón */}
+          <div className="form-group">
+            <label>🏷️ Código de Cupón (opcional)</label>
+            {couponApplied ? (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "0.7rem",
+                  background: "#e8f5e9",
+                  borderRadius: "8px",
+                  border: "2px solid #28a745",
+                }}
+              >
+                <span style={{ flex: 1 }}>
+                  ✅ <strong>{couponApplied.code}</strong> — Descuento: Q
+                  {parseFloat(couponApplied.discount_amount).toFixed(2)}
+                  {couponApplied.discount_type === "PORCENTAJE"
+                    ? ` (${couponApplied.discount_value}%)`
+                    : ""}
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm"
+                  onClick={handleRemoveCoupon}
+                >
+                  ✕ Quitar
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <input
+                  type="text"
+                  placeholder="Ej: DESCUENTO20"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  className="btn btn-info btn-sm"
+                  onClick={handleApplyCoupon}
+                  disabled={couponLoading}
+                  style={{ whiteSpace: "nowrap" }}
+                >
+                  {couponLoading ? "..." : "Aplicar"}
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Tipo de Pago */}
           <div className="form-group">
             <label>Tipo de Pago</label>

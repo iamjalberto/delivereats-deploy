@@ -25,10 +25,25 @@ const AdminDashboard = () => {
   const [errors, setErrors] = useState({});
   const [editing, setEditing] = useState(null);
 
+  // Coupons state
+  const [coupons, setCoupons] = useState([]);
+  const [showCouponForm, setShowCouponForm] = useState(false);
+  const [couponForm, setCouponForm] = useState({
+    code: "",
+    description: "",
+    discount_type: "PORCENTAJE",
+    discount_value: "",
+    min_order_amount: "",
+    max_discount: "",
+    max_uses: "",
+    expires_at: "",
+  });
+
   useEffect(() => {
     fetchRestaurants();
     fetchUsers();
     fetchOrders();
+    fetchCoupons();
   }, []);
 
   const fetchRestaurants = async () => {
@@ -138,6 +153,65 @@ const AdminDashboard = () => {
     return u ? u.name : "ID: " + ownerId;
   };
 
+  const fetchCoupons = async () => {
+    try {
+      const res = await api.get("/payments/coupons/list");
+      setCoupons(res.data.coupons || []);
+    } catch (error) {
+      // coupons endpoint might not be available yet
+    }
+  };
+
+  const handleCouponSubmit = async (e) => {
+    e.preventDefault();
+    if (!couponForm.code || !couponForm.discount_value) {
+      toast.error("Código y valor de descuento son requeridos");
+      return;
+    }
+    try {
+      await api.post("/payments/coupons", {
+        code: couponForm.code.toUpperCase(),
+        description: couponForm.description,
+        discount_type: couponForm.discount_type,
+        discount_value: parseFloat(couponForm.discount_value),
+        min_order_amount: couponForm.min_order_amount
+          ? parseFloat(couponForm.min_order_amount)
+          : 0,
+        max_discount: couponForm.max_discount
+          ? parseFloat(couponForm.max_discount)
+          : 0,
+        max_uses: couponForm.max_uses ? parseInt(couponForm.max_uses) : 0,
+        expires_at: couponForm.expires_at || "",
+      });
+      toast.success("Cupón creado exitosamente");
+      setCouponForm({
+        code: "",
+        description: "",
+        discount_type: "PORCENTAJE",
+        discount_value: "",
+        min_order_amount: "",
+        max_discount: "",
+        max_uses: "",
+        expires_at: "",
+      });
+      setShowCouponForm(false);
+      fetchCoupons();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Error al crear cupón");
+    }
+  };
+
+  const handleDeleteCoupon = async (id) => {
+    if (!confirm("¿Eliminar este cupón?")) return;
+    try {
+      await api.delete(`/payments/coupons/${id}`);
+      toast.success("Cupón eliminado");
+      fetchCoupons();
+    } catch (error) {
+      toast.error("Error al eliminar cupón");
+    }
+  };
+
   return (
     <div>
       <h2>Panel de Administrador</h2>
@@ -174,6 +248,14 @@ const AdminDashboard = () => {
           onClick={() => setActiveTab("orders")}
         >
           Ordenes ({orders.length})
+        </button>
+        <button
+          className={
+            "btn " + (activeTab === "coupons" ? "btn-primary" : "btn-secondary")
+          }
+          onClick={() => setActiveTab("coupons")}
+        >
+          🏷️ Cupones ({coupons.length})
         </button>
       </div>
 
@@ -405,6 +487,215 @@ const AdminDashboard = () => {
           </table>
           {orders.length === 0 && (
             <p style={{ color: "#999" }}>No hay ordenes.</p>
+          )}
+        </div>
+      )}
+
+      {activeTab === "coupons" && (
+        <div>
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowCouponForm(!showCouponForm)}
+            style={{ marginBottom: "1rem" }}
+          >
+            {showCouponForm ? "Cerrar" : "+ Nuevo Cupón"}
+          </button>
+
+          {showCouponForm && (
+            <form
+              onSubmit={handleCouponSubmit}
+              className="card"
+              style={{ maxWidth: "500px", marginBottom: "1rem" }}
+            >
+              <div className="form-group">
+                <label>Código *</label>
+                <input
+                  value={couponForm.code}
+                  onChange={(e) =>
+                    setCouponForm({ ...couponForm, code: e.target.value })
+                  }
+                  placeholder="Ej: DESCUENTO20"
+                  style={{ textTransform: "uppercase" }}
+                />
+              </div>
+              <div className="form-group">
+                <label>Descripción</label>
+                <input
+                  value={couponForm.description}
+                  onChange={(e) =>
+                    setCouponForm({
+                      ...couponForm,
+                      description: e.target.value,
+                    })
+                  }
+                  placeholder="20% de descuento en tu primera orden"
+                />
+              </div>
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Tipo de Descuento</label>
+                  <select
+                    value={couponForm.discount_type}
+                    onChange={(e) =>
+                      setCouponForm({
+                        ...couponForm,
+                        discount_type: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="PORCENTAJE">Porcentaje (%)</option>
+                    <option value="FIJO">Monto Fijo (Q)</option>
+                  </select>
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Valor del Descuento *</label>
+                  <input
+                    type="number"
+                    value={couponForm.discount_value}
+                    onChange={(e) =>
+                      setCouponForm({
+                        ...couponForm,
+                        discount_value: e.target.value,
+                      })
+                    }
+                    placeholder={
+                      couponForm.discount_type === "PORCENTAJE" ? "20" : "50.00"
+                    }
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Orden Mínima (Q)</label>
+                  <input
+                    type="number"
+                    value={couponForm.min_order_amount}
+                    onChange={(e) =>
+                      setCouponForm({
+                        ...couponForm,
+                        min_order_amount: e.target.value,
+                      })
+                    }
+                    placeholder="0"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Descuento Máximo (Q)</label>
+                  <input
+                    type="number"
+                    value={couponForm.max_discount}
+                    onChange={(e) =>
+                      setCouponForm({
+                        ...couponForm,
+                        max_discount: e.target.value,
+                      })
+                    }
+                    placeholder="0 = sin límite"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Usos Máximos</label>
+                  <input
+                    type="number"
+                    value={couponForm.max_uses}
+                    onChange={(e) =>
+                      setCouponForm({ ...couponForm, max_uses: e.target.value })
+                    }
+                    placeholder="0 = ilimitado"
+                    min="0"
+                  />
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Fecha de Expiración</label>
+                  <input
+                    type="date"
+                    value={couponForm.expires_at}
+                    onChange={(e) =>
+                      setCouponForm({
+                        ...couponForm,
+                        expires_at: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <button type="submit" className="btn btn-success">
+                Crear Cupón
+              </button>
+            </form>
+          )}
+
+          {coupons.length === 0 ? (
+            <p style={{ color: "#999" }}>No hay cupones creados.</p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Descripción</th>
+                  <th>Tipo</th>
+                  <th>Valor</th>
+                  <th>Orden Mín.</th>
+                  <th>Usos</th>
+                  <th>Expira</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coupons.map((c) => (
+                  <tr key={c.id}>
+                    <td>
+                      <strong>{c.code}</strong>
+                    </td>
+                    <td>{c.description || "-"}</td>
+                    <td>{c.discount_type === "PORCENTAJE" ? "%" : "Q"}</td>
+                    <td>
+                      {c.discount_type === "PORCENTAJE"
+                        ? `${c.discount_value}%`
+                        : `Q${parseFloat(c.discount_value).toFixed(2)}`}
+                    </td>
+                    <td>
+                      {c.min_order_amount
+                        ? `Q${parseFloat(c.min_order_amount).toFixed(2)}`
+                        : "-"}
+                    </td>
+                    <td>
+                      {c.current_uses || 0}
+                      {c.max_uses ? ` / ${c.max_uses}` : " / ∞"}
+                    </td>
+                    <td>
+                      {c.expires_at
+                        ? new Date(c.expires_at).toLocaleDateString()
+                        : "Sin exp."}
+                    </td>
+                    <td>
+                      <span
+                        className={`badge ${c.active ? "badge-entregada" : "badge-cancelada"}`}
+                      >
+                        {c.active ? "Activo" : "Inactivo"}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleDeleteCoupon(c.id)}
+                      >
+                        Eliminar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
       )}
