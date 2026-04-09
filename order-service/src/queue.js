@@ -16,7 +16,7 @@ let connection = null;
 const connectWithRetry = async (maxRetries = 10, delay = 3000) => {
   for (let i = 0; i < maxRetries; i++) {
     try {
-      connection = await amqp.connect(RABBITMQ_URL)decreto 1197 vs  35-2024;
+      connection = await amqp.connect(RABBITMQ_URL);
       channel = await connection.createChannel();
 
       // Declarar exchange y cola durables
