@@ -165,9 +165,9 @@ jobs:
             SERVICES="auth-service restaurant-catalog-service order-service delivery-service notification-service fx-service payment-service api-gateway frontend"
             for svc in $SERVICES; do
               echo "🐳 Building $svc..."
-              docker build -t delivereats-$svc ./$svc/
+              docker build -t ghcr.io/jalbertochigua/delivereats/$svc:latest ./$svc/
               echo "📦 Importing $svc to k3s..."
-              docker save delivereats-$svc | sudo k3s ctr images import -
+              docker save ghcr.io/jalbertochigua/delivereats/$svc:latest | sudo k3s ctr images import -
             done
             echo "✅ All images built and imported"
           SSHEOF

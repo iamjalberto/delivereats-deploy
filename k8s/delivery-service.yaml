@@ -26,6 +26,7 @@ spec:
       containers:
         - name: delivery-service
           image: ghcr.io/jalbertochigua/delivereats/delivery-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 50054
           envFrom:

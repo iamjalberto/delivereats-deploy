@@ -26,6 +26,7 @@ spec:
       containers:
         - name: fx-service
           image: ghcr.io/jalbertochigua/delivereats/fx-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 50056
             - containerPort: 5000

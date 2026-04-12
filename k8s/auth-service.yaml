@@ -26,6 +26,7 @@ spec:
       containers:
         - name: auth-service
           image: ghcr.io/jalbertochigua/delivereats/auth-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 50051
           envFrom:

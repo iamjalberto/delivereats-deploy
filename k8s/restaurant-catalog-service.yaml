@@ -26,6 +26,7 @@ spec:
       containers:
         - name: restaurant-catalog-service
           image: ghcr.io/jalbertochigua/delivereats/restaurant-catalog-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 50052
           envFrom:
