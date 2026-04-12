@@ -27,6 +27,11 @@ const PaymentPage = () => {
   const [couponApplied, setCouponApplied] = useState(null);
   const [couponLoading, setCouponLoading] = useState(false);
 
+  // Wallet
+  const [walletBalance, setWalletBalance] = useState(null);
+  const [rechargeAmount, setRechargeAmount] = useState("");
+  const [recharging, setRecharging] = useState(false);
+
   const currencies = ["GTQ", "USD", "EUR", "MXN", "GBP", "JPY"];
 
   useEffect(() => {
@@ -45,6 +50,12 @@ const PaymentPage = () => {
       setFxRate(null);
     }
   }, [currency, order, couponApplied]);
+
+  useEffect(() => {
+    if (paymentType === "CARTERA_DIGITAL") {
+      fetchWalletBalance();
+    }
+  }, [paymentType]);
 
   const fetchOrder = async () => {
     try {
@@ -92,6 +103,40 @@ const PaymentPage = () => {
       setCurrency("GTQ");
     } finally {
       setFxLoading(false);
+    }
+  };
+
+  const fetchWalletBalance = async () => {
+    try {
+      const res = await api.get("/payments/wallet");
+      if (res.data.success) {
+        setWalletBalance(res.data.balance);
+      }
+    } catch {
+      setWalletBalance(0);
+    }
+  };
+
+  const handleRecharge = async () => {
+    const amt = parseFloat(rechargeAmount);
+    if (!amt || amt <= 0) {
+      toast.error("Ingresa un monto válido");
+      return;
+    }
+    setRecharging(true);
+    try {
+      const res = await api.post("/payments/wallet/recharge", { amount: amt });
+      if (res.data.success) {
+        toast.success(res.data.message);
+        setWalletBalance(res.data.balance);
+        setRechargeAmount("");
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Error al recargar");
+    } finally {
+      setRecharging(false);
     }
   };
 
@@ -394,12 +439,49 @@ const PaymentPage = () => {
               }}
             >
               <p>
-                📱 <strong>Cartera Digital</strong>
+                📱 <strong>Cartera Digital Recargable</strong>
               </p>
               <p>
-                El monto será debitado de tu cartera digital. Saldo máximo
-                permitido: Q5,000.00
+                Saldo actual:{" "}
+                <strong
+                  style={{
+                    fontSize: "1.1rem",
+                    color:
+                      walletBalance !== null && walletBalance >= effectiveTotal
+                        ? "#28a745"
+                        : "#dc3545",
+                  }}
+                >
+                  Q{walletBalance !== null ? walletBalance.toFixed(2) : "..."}
+                </strong>
               </p>
+              {walletBalance !== null && walletBalance < effectiveTotal && (
+                <p style={{ color: "#dc3545", fontSize: "0.9rem" }}>
+                  ⚠️ Saldo insuficiente. Necesitas Q
+                  {(effectiveTotal - walletBalance).toFixed(2)} más.
+                </p>
+              )}
+              <div
+                style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}
+              >
+                <input
+                  type="number"
+                  placeholder="Monto a recargar"
+                  value={rechargeAmount}
+                  onChange={(e) => setRechargeAmount(e.target.value)}
+                  min="1"
+                  step="0.01"
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  className="btn btn-success btn-sm"
+                  onClick={handleRecharge}
+                  disabled={recharging}
+                >
+                  {recharging ? "..." : "💰 Recargar"}
+                </button>
+              </div>
             </div>
           )}
 

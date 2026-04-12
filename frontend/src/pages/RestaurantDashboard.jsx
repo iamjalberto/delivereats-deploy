@@ -35,6 +35,18 @@ const RestaurantDashboard = () => {
   });
   const [restaurantErrors, setRestaurantErrors] = useState({});
 
+  // Promotions
+  const [promos, setPromos] = useState([]);
+  const [showPromoForm, setShowPromoForm] = useState(false);
+  const [promoForm, setPromoForm] = useState({
+    title: "",
+    description: "",
+    discount_type: "PORCENTAJE",
+    discount_value: "",
+    starts_at: "",
+    ends_at: "",
+  });
+
   useEffect(() => {
     fetchRestaurants();
   }, []);
@@ -43,6 +55,7 @@ const RestaurantDashboard = () => {
     if (selectedRestaurant) {
       fetchOrders();
       fetchMenu();
+      fetchPromos();
     }
   }, [selectedRestaurant]);
 
@@ -187,6 +200,59 @@ const RestaurantDashboard = () => {
       available: item.available,
     });
     setShowMenuForm(true);
+  };
+
+  const fetchPromos = async () => {
+    try {
+      const res = await api.get(
+        `/restaurants/${selectedRestaurant.id}/promotions`,
+      );
+      setPromos(res.data.promotions || []);
+    } catch {
+      setPromos([]);
+    }
+  };
+
+  const handlePromoSubmit = async (e) => {
+    e.preventDefault();
+    if (!promoForm.title || !promoForm.discount_value) {
+      toast.error("Título y valor de descuento son requeridos");
+      return;
+    }
+    try {
+      await api.post(`/restaurants/${selectedRestaurant.id}/promotions`, {
+        title: promoForm.title,
+        description: promoForm.description,
+        discount_type: promoForm.discount_type,
+        discount_value: parseFloat(promoForm.discount_value),
+        starts_at: promoForm.starts_at,
+        ends_at: promoForm.ends_at,
+      });
+      toast.success("Promoción creada");
+      setShowPromoForm(false);
+      setPromoForm({
+        title: "",
+        description: "",
+        discount_type: "PORCENTAJE",
+        discount_value: "",
+        starts_at: "",
+        ends_at: "",
+      });
+      fetchPromos();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Error al crear promoción");
+    }
+  };
+
+  const handleDeletePromo = async (promoId) => {
+    if (!confirm("¿Eliminar esta promoción?")) return;
+    try {
+      await api.delete(`/restaurants/promotions/${promoId}`);
+      toast.success("Promoción eliminada");
+      fetchPromos();
+    } catch {
+      toast.error("Error al eliminar promoción");
+    }
   };
 
   const handleCreateRestaurant = async (e) => {
@@ -513,6 +579,131 @@ const RestaurantDashboard = () => {
           </div>
         ))}
       </div>
+
+      {/* PROMOCIONES */}
+      <h3 style={{ marginTop: "2rem", marginBottom: "0.5rem" }}>
+        🏷️ Promociones
+        <button
+          className="btn btn-primary btn-sm"
+          style={{ marginLeft: "1rem" }}
+          onClick={() => setShowPromoForm(!showPromoForm)}
+        >
+          {showPromoForm ? "Cerrar" : "+ Nueva Promoción"}
+        </button>
+      </h3>
+
+      {showPromoForm && (
+        <form
+          onSubmit={handlePromoSubmit}
+          className="card"
+          style={{ maxWidth: "500px" }}
+        >
+          <div className="form-group">
+            <label>Título *</label>
+            <input
+              value={promoForm.title}
+              onChange={(e) =>
+                setPromoForm({ ...promoForm, title: e.target.value })
+              }
+              placeholder="Ej: 2x1 en pizzas"
+            />
+          </div>
+          <div className="form-group">
+            <label>Descripción</label>
+            <input
+              value={promoForm.description}
+              onChange={(e) =>
+                setPromoForm({ ...promoForm, description: e.target.value })
+              }
+            />
+          </div>
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label>Tipo</label>
+              <select
+                value={promoForm.discount_type}
+                onChange={(e) =>
+                  setPromoForm({ ...promoForm, discount_type: e.target.value })
+                }
+              >
+                <option value="PORCENTAJE">Porcentaje (%)</option>
+                <option value="FIJO">Monto Fijo (Q)</option>
+              </select>
+            </div>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label>Valor *</label>
+              <input
+                type="number"
+                value={promoForm.discount_value}
+                onChange={(e) =>
+                  setPromoForm({ ...promoForm, discount_value: e.target.value })
+                }
+                min="0"
+                step="0.01"
+              />
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label>Inicio</label>
+              <input
+                type="date"
+                value={promoForm.starts_at}
+                onChange={(e) =>
+                  setPromoForm({ ...promoForm, starts_at: e.target.value })
+                }
+              />
+            </div>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label>Fin</label>
+              <input
+                type="date"
+                value={promoForm.ends_at}
+                onChange={(e) =>
+                  setPromoForm({ ...promoForm, ends_at: e.target.value })
+                }
+              />
+            </div>
+          </div>
+          <button type="submit" className="btn btn-success">
+            Crear Promoción
+          </button>
+        </form>
+      )}
+
+      {promos.length === 0 ? (
+        <p style={{ color: "#999" }}>No hay promociones activas.</p>
+      ) : (
+        <div className="card-grid" style={{ marginTop: "0.5rem" }}>
+          {promos.map((p) => (
+            <div key={p.id} className="card">
+              <h3>🏷️ {p.title}</h3>
+              <p>{p.description}</p>
+              <p>
+                <strong>
+                  {p.discount_type === "PORCENTAJE"
+                    ? `${p.discount_value}%`
+                    : `Q${p.discount_value}`}{" "}
+                  de descuento
+                </strong>
+              </p>
+              {p.starts_at && (
+                <p>Inicio: {new Date(p.starts_at).toLocaleDateString()}</p>
+              )}
+              {p.ends_at && (
+                <p>Fin: {new Date(p.ends_at).toLocaleDateString()}</p>
+              )}
+              <p>{p.active ? "✅ Activa" : "❌ Inactiva"}</p>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => handleDeletePromo(p.id)}
+              >
+                Eliminar
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

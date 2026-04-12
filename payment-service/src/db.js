@@ -81,6 +81,32 @@ const initDB = async () => {
       `CREATE INDEX IF NOT EXISTS idx_coupons_code ON coupons(code);`,
     );
 
+    // Tabla de carteras digitales (wallet recargable)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS wallets (
+        id SERIAL PRIMARY KEY,
+        customer_id INTEGER NOT NULL UNIQUE,
+        balance DECIMAL(10, 2) NOT NULL DEFAULT 0 CHECK (balance >= 0),
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_wallets_customer_id ON wallets(customer_id);
+    `);
+
+    // Historial de transacciones de cartera
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS wallet_transactions (
+        id SERIAL PRIMARY KEY,
+        wallet_id INTEGER NOT NULL REFERENCES wallets(id),
+        type VARCHAR(20) NOT NULL,
+        amount DECIMAL(10, 2) NOT NULL CHECK (amount > 0),
+        description TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     // Trigger para updated_at
     await client.query(`
       CREATE OR REPLACE FUNCTION update_payments_updated_at()

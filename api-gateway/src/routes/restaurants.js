@@ -16,6 +16,38 @@ router.get("/", authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/restaurants/search - Buscar restaurantes con filtros (MUST be before /:id)
+router.get("/search", authenticateToken, async (req, res) => {
+  try {
+    const { query, food_type, filter, has_promotions } = req.query;
+    const response = await grpcCall(restaurantClient, "SearchRestaurants", {
+      query: query || "",
+      food_type: food_type || "",
+      filter: filter || "",
+      has_promotions: has_promotions === "true",
+    });
+    res.json(response);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Error al buscar restaurantes" });
+  }
+});
+
+// GET /api/restaurants/promotions/all - Listar todas las promociones (MUST be before /:id)
+router.get("/promotions/all", authenticateToken, async (req, res) => {
+  try {
+    const response = await grpcCall(restaurantClient, "ListPromotions", {
+      restaurant_id: 0,
+    });
+    res.json(response);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Error al obtener promociones" });
+  }
+});
+
 // GET /api/restaurants/:id
 router.get("/:id", authenticateToken, async (req, res) => {
   try {
@@ -181,6 +213,74 @@ router.delete(
       res
         .status(500)
         .json({ success: false, message: "Error al eliminar producto" });
+    }
+  },
+);
+
+// ========== PROMOTIONS ==========
+
+// GET /api/restaurants/:id/promotions - Listar promociones de un restaurante
+router.get("/:id/promotions", authenticateToken, async (req, res) => {
+  try {
+    const response = await grpcCall(restaurantClient, "ListPromotions", {
+      restaurant_id: parseInt(req.params.id),
+    });
+    res.json(response);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Error al obtener promociones" });
+  }
+});
+
+// POST /api/restaurants/:id/promotions - Crear promoción (RESTAURANTE, ADMINISTRADOR)
+router.post(
+  "/:id/promotions",
+  authenticateToken,
+  authorizeRoles("RESTAURANTE", "ADMINISTRADOR"),
+  async (req, res) => {
+    try {
+      const {
+        title,
+        description,
+        discount_type,
+        discount_value,
+        starts_at,
+        ends_at,
+      } = req.body;
+      const response = await grpcCall(restaurantClient, "CreatePromotion", {
+        restaurant_id: parseInt(req.params.id),
+        title,
+        description: description || "",
+        discount_type: discount_type || "PORCENTAJE",
+        discount_value: parseFloat(discount_value),
+        starts_at: starts_at || "",
+        ends_at: ends_at || "",
+      });
+      res.status(201).json(response);
+    } catch (error) {
+      res
+        .status(500)
+        .json({ success: false, message: "Error al crear promoción" });
+    }
+  },
+);
+
+// DELETE /api/restaurants/promotions/:promoId - Eliminar promoción (RESTAURANTE, ADMINISTRADOR)
+router.delete(
+  "/promotions/:promoId",
+  authenticateToken,
+  authorizeRoles("RESTAURANTE", "ADMINISTRADOR"),
+  async (req, res) => {
+    try {
+      const response = await grpcCall(restaurantClient, "DeletePromotion", {
+        id: parseInt(req.params.promoId),
+      });
+      res.json(response);
+    } catch (error) {
+      res
+        .status(500)
+        .json({ success: false, message: "Error al eliminar promoción" });
     }
   },
 );

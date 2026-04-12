@@ -270,6 +270,156 @@ const listMenuItems = async (call, callback) => {
   }
 };
 
+// ========== PROMOTIONS ==========
+
+const createPromotion = async (call, callback) => {
+  try {
+    const {
+      restaurant_id,
+      title,
+      description,
+      discount_type,
+      discount_value,
+      starts_at,
+      ends_at,
+    } = call.request;
+    const result = await pool.query(
+      `INSERT INTO promotions (restaurant_id, title, description, discount_type, discount_value, starts_at, ends_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      [
+        restaurant_id,
+        title,
+        description,
+        discount_type || "PORCENTAJE",
+        discount_value,
+        starts_at || null,
+        ends_at || null,
+      ],
+    );
+    const p = result.rows[0];
+    callback(null, {
+      success: true,
+      message: "Promoción creada exitosamente",
+      promotion: {
+        id: p.id,
+        restaurant_id: p.restaurant_id,
+        title: p.title,
+        description: p.description,
+        discount_type: p.discount_type,
+        discount_value: parseFloat(p.discount_value),
+        starts_at: p.starts_at ? p.starts_at.toISOString() : "",
+        ends_at: p.ends_at ? p.ends_at.toISOString() : "",
+        active: p.active,
+      },
+    });
+  } catch (error) {
+    console.error("[Restaurant-Service] createPromotion error:", error);
+    callback(null, {
+      success: false,
+      message: "Error al crear promoción",
+      promotion: null,
+    });
+  }
+};
+
+const listPromotions = async (call, callback) => {
+  try {
+    const { restaurant_id } = call.request;
+    let query = "SELECT * FROM promotions";
+    const params = [];
+    if (restaurant_id) {
+      query += " WHERE restaurant_id = $1";
+      params.push(restaurant_id);
+    }
+    query += " ORDER BY id DESC";
+    const result = await pool.query(query, params);
+    const promotions = result.rows.map((p) => ({
+      id: p.id,
+      restaurant_id: p.restaurant_id,
+      title: p.title,
+      description: p.description,
+      discount_type: p.discount_type,
+      discount_value: parseFloat(p.discount_value),
+      starts_at: p.starts_at ? p.starts_at.toISOString() : "",
+      ends_at: p.ends_at ? p.ends_at.toISOString() : "",
+      active: p.active,
+    }));
+    callback(null, { promotions });
+  } catch (error) {
+    console.error("[Restaurant-Service] listPromotions error:", error);
+    callback(null, { promotions: [] });
+  }
+};
+
+const deletePromotion = async (call, callback) => {
+  try {
+    const { id } = call.request;
+    await pool.query("DELETE FROM promotions WHERE id = $1", [id]);
+    callback(null, { success: true, message: "Promoción eliminada" });
+  } catch (error) {
+    callback(null, { success: false, message: "Error al eliminar promoción" });
+  }
+};
+
+// ========== SEARCH & FILTERS ==========
+
+const searchRestaurants = async (call, callback) => {
+  try {
+    const { query, food_type, filter, has_promotions } = call.request;
+    let sql = "SELECT DISTINCT r.* FROM restaurants r";
+    const conditions = [];
+    const params = [];
+    let paramIdx = 1;
+
+    if (has_promotions) {
+      sql +=
+        " INNER JOIN promotions p ON p.restaurant_id = r.id AND p.active = true AND (p.ends_at IS NULL OR p.ends_at > NOW())";
+    }
+
+    if (query) {
+      conditions.push(
+        `(LOWER(r.name) LIKE $${paramIdx} OR LOWER(r.food_type) LIKE $${paramIdx})`,
+      );
+      params.push(`%${query.toLowerCase()}%`);
+      paramIdx++;
+    }
+
+    if (food_type) {
+      conditions.push(`LOWER(r.food_type) = $${paramIdx}`);
+      params.push(food_type.toLowerCase());
+      paramIdx++;
+    }
+
+    if (conditions.length > 0) {
+      sql += " WHERE " + conditions.join(" AND ");
+    }
+
+    // Sorting based on filter
+    if (filter === "nuevos") {
+      sql += " ORDER BY r.id DESC";
+    } else if (filter === "destacados") {
+      sql += " ORDER BY r.id ASC"; // Could be based on order count in future
+    } else {
+      sql += " ORDER BY r.id";
+    }
+
+    const result = await pool.query(sql, params);
+    const restaurants = result.rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      address: r.address,
+      phone: r.phone,
+      schedule: r.schedule,
+      food_type: r.food_type,
+      owner_id: r.owner_id,
+    }));
+    callback(null, { restaurants });
+  } catch (error) {
+    console.error("[Restaurant-Service] searchRestaurants error:", error);
+    callback(null, { restaurants: [] });
+  }
+};
+
 module.exports = {
   createRestaurant,
   getRestaurant,
@@ -281,4 +431,8 @@ module.exports = {
   updateMenuItem,
   deleteMenuItem,
   listMenuItems,
+  createPromotion,
+  listPromotions,
+  deletePromotion,
+  searchRestaurants,
 };

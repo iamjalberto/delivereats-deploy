@@ -38,12 +38,35 @@ function simulateCardPayment(cardNumber, amount) {
 
 /**
  * Simula el pago con cartera digital.
- * - Montos > Q5,000: RECHAZADO (saldo insuficiente simulado)
+ * Usa saldo real de la tabla wallets.
  */
-function simulateWalletPayment(amount) {
-  if (amount > 5000) {
-    return { approved: false, reason: "Saldo insuficiente en cartera digital" };
+async function simulateWalletPayment(customerId, amount) {
+  const result = await pool.query(
+    "SELECT * FROM wallets WHERE customer_id = $1",
+    [customerId],
+  );
+  if (result.rows.length === 0) {
+    return {
+      approved: false,
+      reason: "No tienes una cartera digital. Recarga primero.",
+    };
   }
+  const wallet = result.rows[0];
+  if (parseFloat(wallet.balance) < amount) {
+    return {
+      approved: false,
+      reason: `Saldo insuficiente en cartera digital (Q${parseFloat(wallet.balance).toFixed(2)} disponible)`,
+    };
+  }
+  // Debit wallet
+  await pool.query(
+    "UPDATE wallets SET balance = balance - $1 WHERE customer_id = $2",
+    [amount, customerId],
+  );
+  await pool.query(
+    "INSERT INTO wallet_transactions (wallet_id, type, amount, description) VALUES ($1, 'PAGO', $2, $3)",
+    [wallet.id, amount, `Pago de orden`],
+  );
   return { approved: true, reason: null };
 }
 
@@ -101,8 +124,8 @@ async function processPayment(call, callback) {
     let last4 = "";
 
     if (paymentType === "CARTERA_DIGITAL") {
-      // Pago con cartera digital - no requiere tarjeta
-      simulation = simulateWalletPayment(req.amount);
+      // Pago con cartera digital - usa saldo real
+      simulation = await simulateWalletPayment(req.customer_id, req.amount);
       last4 = "WLLT";
     } else {
       // Pago con tarjeta - requiere número de tarjeta
@@ -482,6 +505,123 @@ function mapCoupon(c) {
 }
 
 // =====================================================
+// CARTERA DIGITAL (WALLET RECARGABLE)
+// =====================================================
+
+async function getWalletBalance(call, callback) {
+  const { customer_id } = call.request;
+  try {
+    let result = await pool.query(
+      "SELECT * FROM wallets WHERE customer_id = $1",
+      [customer_id],
+    );
+    if (result.rows.length === 0) {
+      // Auto-create wallet with 0 balance
+      result = await pool.query(
+        "INSERT INTO wallets (customer_id, balance) VALUES ($1, 0) RETURNING *",
+        [customer_id],
+      );
+    }
+    const w = result.rows[0];
+    callback(null, {
+      success: true,
+      message: "OK",
+      wallet_id: w.id,
+      balance: parseFloat(w.balance),
+    });
+  } catch (error) {
+    console.error("❌ [Payment] Wallet balance error:", error.message);
+    callback(null, { success: false, message: error.message, balance: 0 });
+  }
+}
+
+async function rechargeWallet(call, callback) {
+  const { customer_id, amount, description } = call.request;
+  console.log(
+    `💰 [Payment] Recarga de cartera - Cliente #${customer_id}, Q${amount}`,
+  );
+  try {
+    if (!amount || amount <= 0) {
+      return callback(null, {
+        success: false,
+        message: "Monto debe ser mayor a 0",
+        balance: 0,
+      });
+    }
+
+    // Upsert wallet
+    let result = await pool.query(
+      "SELECT * FROM wallets WHERE customer_id = $1",
+      [customer_id],
+    );
+    let wallet;
+    if (result.rows.length === 0) {
+      const ins = await pool.query(
+        "INSERT INTO wallets (customer_id, balance) VALUES ($1, $2) RETURNING *",
+        [customer_id, amount],
+      );
+      wallet = ins.rows[0];
+    } else {
+      const upd = await pool.query(
+        "UPDATE wallets SET balance = balance + $1 WHERE customer_id = $2 RETURNING *",
+        [amount, customer_id],
+      );
+      wallet = upd.rows[0];
+    }
+
+    await pool.query(
+      "INSERT INTO wallet_transactions (wallet_id, type, amount, description) VALUES ($1, 'RECARGA', $2, $3)",
+      [wallet.id, amount, description || "Recarga de cartera"],
+    );
+
+    console.log(
+      `✅ [Payment] Cartera recargada - Nuevo saldo: Q${parseFloat(wallet.balance).toFixed(2)}`,
+    );
+    callback(null, {
+      success: true,
+      message: `Cartera recargada exitosamente. Nuevo saldo: Q${parseFloat(wallet.balance).toFixed(2)}`,
+      wallet_id: wallet.id,
+      balance: parseFloat(wallet.balance),
+    });
+  } catch (error) {
+    console.error("❌ [Payment] Recharge error:", error.message);
+    callback(null, { success: false, message: error.message, balance: 0 });
+  }
+}
+
+async function getWalletTransactions(call, callback) {
+  const { customer_id } = call.request;
+  try {
+    const walletRes = await pool.query(
+      "SELECT * FROM wallets WHERE customer_id = $1",
+      [customer_id],
+    );
+    if (walletRes.rows.length === 0) {
+      return callback(null, { success: true, transactions: [], balance: 0 });
+    }
+    const wallet = walletRes.rows[0];
+    const txRes = await pool.query(
+      "SELECT * FROM wallet_transactions WHERE wallet_id = $1 ORDER BY created_at DESC LIMIT 50",
+      [wallet.id],
+    );
+    const transactions = txRes.rows.map((t) => ({
+      id: t.id,
+      type: t.type,
+      amount: parseFloat(t.amount),
+      description: t.description || "",
+      created_at: t.created_at?.toISOString() || "",
+    }));
+    callback(null, {
+      success: true,
+      transactions,
+      balance: parseFloat(wallet.balance),
+    });
+  } catch (error) {
+    callback(null, { success: false, transactions: [], balance: 0 });
+  }
+}
+
+// =====================================================
 // INICIAR SERVIDOR
 // =====================================================
 
@@ -508,6 +648,9 @@ async function startServer() {
     ValidateCoupon: validateCoupon,
     ListCoupons: listCoupons,
     DeleteCoupon: deleteCoupon,
+    GetWalletBalance: getWalletBalance,
+    RechargeWallet: rechargeWallet,
+    GetWalletTransactions: getWalletTransactions,
   });
 
   server.bindAsync(

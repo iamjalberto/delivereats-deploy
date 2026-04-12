@@ -179,6 +179,71 @@ router.get("/:orderId", authenticateToken, async (req, res) => {
 
 // ===================== CUPONES =====================
 
+// GET /api/payments/wallet - Obtener saldo de cartera (CLIENTE)
+router.get(
+  "/wallet",
+  authenticateToken,
+  authorizeRoles("CLIENTE"),
+  async (req, res) => {
+    try {
+      const response = await grpcCall(paymentClient, "GetWalletBalance", {
+        customer_id: req.user.id,
+      });
+      res.json(response);
+    } catch (error) {
+      res
+        .status(500)
+        .json({ success: false, message: "Error al consultar cartera" });
+    }
+  },
+);
+
+// POST /api/payments/wallet/recharge - Recargar cartera (CLIENTE)
+router.post(
+  "/wallet/recharge",
+  authenticateToken,
+  authorizeRoles("CLIENTE"),
+  async (req, res) => {
+    try {
+      const { amount, description } = req.body;
+      if (!amount || amount <= 0) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Monto debe ser mayor a 0" });
+      }
+      const response = await grpcCall(paymentClient, "RechargeWallet", {
+        customer_id: req.user.id,
+        amount: parseFloat(amount),
+        description: description || "Recarga de cartera",
+      });
+      res.json(response);
+    } catch (error) {
+      res
+        .status(500)
+        .json({ success: false, message: "Error al recargar cartera" });
+    }
+  },
+);
+
+// GET /api/payments/wallet/transactions - Historial de cartera (CLIENTE)
+router.get(
+  "/wallet/transactions",
+  authenticateToken,
+  authorizeRoles("CLIENTE"),
+  async (req, res) => {
+    try {
+      const response = await grpcCall(paymentClient, "GetWalletTransactions", {
+        customer_id: req.user.id,
+      });
+      res.json(response);
+    } catch (error) {
+      res
+        .status(500)
+        .json({ success: false, message: "Error al consultar transacciones" });
+    }
+  },
+);
+
 // POST /api/payments/coupons - Crear cupón (ADMINISTRADOR)
 router.post(
   "/coupons",

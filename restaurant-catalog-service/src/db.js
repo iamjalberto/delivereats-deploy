@@ -33,6 +33,19 @@ const initDB = async () => {
         category VARCHAR(100),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS promotions (
+        id SERIAL PRIMARY KEY,
+        restaurant_id INTEGER REFERENCES restaurants(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        discount_type VARCHAR(20) NOT NULL DEFAULT 'PORCENTAJE',
+        discount_value DECIMAL(10,2) NOT NULL,
+        starts_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        ends_at TIMESTAMP NOT NULL,
+        active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `);
     console.log("[Restaurant-Service] Database tables initialized");
   } catch (error) {

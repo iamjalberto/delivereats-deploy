@@ -37,6 +37,10 @@ const startServer = async () => {
     UpdateMenuItem: handlers.updateMenuItem,
     DeleteMenuItem: handlers.deleteMenuItem,
     ListMenuItems: handlers.listMenuItems,
+    CreatePromotion: handlers.createPromotion,
+    ListPromotions: handlers.listPromotions,
+    DeletePromotion: handlers.deletePromotion,
+    SearchRestaurants: handlers.searchRestaurants,
   });
 
   const port = process.env.PORT || "50052";
