@@ -43,7 +43,7 @@ const Login = () => {
   return (
     <div className="auth-page">
       <div className="form-container">
-        <h2>🍔 Delivereats</h2>
+        <h2>🍔 Calificacion</h2>
         <p
           style={{ textAlign: "center", marginBottom: "1.5rem", color: "#666" }}
         >
