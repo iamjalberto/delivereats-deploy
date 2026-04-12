@@ -1,6 +1,6 @@
-# 📚 Documentación — Práctica 4: Actualización de Documentación y Testeo de Colas
+# 📚 Documentación — Proyecto Fase 2: Delivereats
 
-## Delivereats — Transición a Fase 2
+## Plataforma de Delivery de Comida — Microservicios
 
 **Universidad de San Carlos de Guatemala**
 **Facultad de Ingeniería**
@@ -17,409 +17,319 @@
 
 ## 📋 Tabla de Contenidos
 
-1. [Requerimientos Funcionales Actualizados](#1-requerimientos-funcionales-actualizados)
-2. [Requerimientos No Funcionales Actualizados](#2-requerimientos-no-funcionales-actualizados)
-3. [Diagrama de Arquitectura de Alto Nivel (Actualizado)](#3-diagrama-de-arquitectura-de-alto-nivel-actualizado)
-4. [Diagrama de Despliegue en Kubernetes](#4-diagrama-de-despliegue-en-kubernetes)
-5. [Diagrama Entidad-Relación Actualizado](#5-diagrama-entidad-relación-actualizado)
-6. [Diagramas de Actividades / Secuencia Actualizados](#6-diagramas-de-actividades--secuencia-actualizados)
-7. [Guía de Despliegue en Kubernetes (Paso a Paso)](#7-guía-de-despliegue-en-kubernetes-paso-a-paso)
-8. [Estrategias de Rollout y Rollback](#8-estrategias-de-rollout-y-rollback)
-9. [Descripción del Pipeline CI/CD](#9-descripción-del-pipeline-cicd)
-10. [Descripción del Flujo JWT](#10-descripción-del-flujo-jwt)
-11. [Prueba de Concepto — RabbitMQ](#11-prueba-de-concepto--rabbitmq)
+1. [Arquitectura General](#1-arquitectura-general)
+2. [Microservicios Implementados](#2-microservicios-implementados)
+3. [Nuevas Funcionalidades Fase 2](#3-nuevas-funcionalidades-fase-2)
+4. [Diagrama Entidad-Relación](#4-diagrama-entidad-relación)
+5. [Infraestructura Kubernetes](#5-infraestructura-kubernetes)
+6. [Pipeline CI/CD](#6-pipeline-cicd)
+7. [Estrategias de Rollout y Rollback](#7-estrategias-de-rollout-y-rollback)
+8. [Pruebas Unitarias](#8-pruebas-unitarias)
+9. [Frontend — Flujos Integrados](#9-frontend--flujos-integrados)
+10. [Flujo JWT y Autorización](#10-flujo-jwt-y-autorización)
+11. [Sistema de Colas — RabbitMQ](#11-sistema-de-colas--rabbitmq)
+12. [Guía de Despliegue](#12-guía-de-despliegue)
 
 ---
 
-## 1. Requerimientos Funcionales Actualizados
+## 1. Arquitectura General
 
-### 1.1 Cambios respecto a Fase 1
+### 1.1 Stack Tecnológico
 
-En la Fase 2 se agregan requerimientos relacionados con **comunicación asíncrona** mediante colas de mensajería y la preparación para **orquestación con Kubernetes**.
+| Capa | Tecnología |
+|------|-----------|
+| Frontend | React 18 + Vite + React Router |
+| API Gateway | Express.js + JWT + gRPC clients |
+| Microservicios (7 Node.js) | gRPC + PostgreSQL embebido |
+| Microservicio Python | Flask + gRPC (fx-service) |
+| Mensajería | RabbitMQ (AMQP) |
+| Cache | Redis |
+| Orquestación | k3s (Kubernetes ligero) en GCP |
+| CI/CD | GitHub Actions → GHCR → SSH deploy |
+| Cloud | Google Cloud Platform (VM e2-medium) |
 
-### 1.2 Nuevos Requerimientos Funcionales
-
-| ID | Requerimiento | Descripción | Estado |
-|----|---------------|-------------|--------|
-| RF-MQ-01 | Publicación de órdenes en cola | Al crear una orden, el Order-Service publica un mensaje en RabbitMQ | ✅ PoC |
-| RF-MQ-02 | Consumo de órdenes por restaurante | El Restaurant-Service consume mensajes de la cola y los registra | ✅ PoC |
-| RF-MQ-03 | Cola durable | Los mensajes persisten en la cola si el consumidor no está disponible | ✅ PoC |
-| RF-MQ-04 | Confirmación de procesamiento (ACK) | El consumidor confirma el procesamiento del mensaje | ✅ PoC |
-| RF-K8S-01 | Despliegue en Kubernetes | Todos los microservicios se despliegan como Pods en un clúster K8s | 📋 Diseñado |
-| RF-K8S-02 | Escalabilidad horizontal | Los servicios pueden escalar réplicas de forma independiente | 📋 Diseñado |
-| RF-CICD-01 | Pipeline CI/CD | Build, test y deploy automatizado con GitHub Actions | 📋 Diseñado |
-
-### 1.3 Requerimientos Funcionales Existentes (sin cambios)
-
-Los siguientes módulos se mantienen tal cual de la Fase 1:
-
-| Módulo | IDs | Estado |
-|--------|-----|--------|
-| Autenticación (Auth Service) | RF-AUTH-01 a RF-AUTH-06 | ✅ Implementado |
-| Catálogo (Restaurant Catalog Service) | RF-CAT-01 a RF-CAT-06 | ✅ Implementado |
-| Órdenes (Order Service) | RF-ORD-01 a RF-ORD-09 | ✅ Implementado |
-| Entregas (Delivery Service) | RF-DEL-01 a RF-DEL-04 | ✅ Implementado |
-| Notificaciones (Notification Service) | RF-NOT-01 a RF-NOT-06 | ✅ Implementado |
-
----
-
-## 2. Requerimientos No Funcionales Actualizados
-
-### 2.1 Nuevos RNF para Fase 2
-
-#### Comunicación Asíncrona
-
-| ID | Requerimiento | Implementación |
-|----|---------------|----------------|
-| RNF-MQ-01 | Mensajería asíncrona | RabbitMQ como broker de mensajes entre servicios |
-| RNF-MQ-02 | Mensajes persistentes | Cola durable con mensajes `persistent: true` |
-| RNF-MQ-03 | Reconexión automática | Retry con backoff exponencial al perder conexión con RabbitMQ |
-| RNF-MQ-04 | Desacoplamiento temporal | El productor y consumidor no necesitan estar activos simultáneamente |
-
-#### Orquestación y Escalabilidad
-
-| ID | Requerimiento | Implementación |
-|----|---------------|----------------|
-| RNF-K8S-01 | Orquestación de contenedores | Kubernetes para gestión de Pods, Services y Deployments |
-| RNF-K8S-02 | Service Discovery | Services de Kubernetes (ClusterIP) para descubrimiento entre servicios |
-| RNF-K8S-03 | Health checks | Liveness y Readiness probes en cada Deployment |
-| RNF-K8S-04 | Escalabilidad horizontal | HorizontalPodAutoscaler (HPA) por servicio |
-| RNF-K8S-05 | Gestión de configuración | ConfigMaps para variables de entorno, Secrets para credenciales |
-
-#### CI/CD
-
-| ID | Requerimiento | Implementación |
-|----|---------------|----------------|
-| RNF-CICD-01 | Integración continua | GitHub Actions ejecuta build y tests en cada push |
-| RNF-CICD-02 | Entrega continua | Deploy automático al clúster K8s tras merge a main |
-| RNF-CICD-03 | Registro de imágenes | Docker images en GitHub Container Registry (ghcr.io) |
-| RNF-CICD-04 | Rollback automático | Estrategia RollingUpdate con rollback en caso de fallo |
-
-#### Seguridad
-
-| ID | Requerimiento | Implementación |
-|----|---------------|----------------|
-| RNF-SEG-05 | Secrets en K8s | Credenciales de DB, JWT_SECRET y SMTP en Kubernetes Secrets |
-| RNF-SEG-06 | Network Policies | Restricción de tráfico entre Pods a solo lo necesario |
-
-### 2.2 RNF Existentes (actualizados)
-
-| ID | Requerimiento | Fase 1 | Fase 2 |
-|----|---------------|--------|--------|
-| RNF-ESC-03 | Orquestación | Docker Compose | **Kubernetes** |
-| RNF-DISP-01 | Despliegue en nube | GCP Compute Engine (VM) | **GKE (Google Kubernetes Engine)** |
-| RNF-MANT-04 | Versionamiento | Git + Tag manual | **Git + CI/CD + Tag automático** |
-
----
-
-## 3. Diagrama de Arquitectura de Alto Nivel (Actualizado)
-
-### 3.1 Cambios respecto a Fase 1
-
-- Se agrega **RabbitMQ** como broker de mensajes entre Order-Service y Restaurant-Service
-- Se añade comunicación **asíncrona** además de la comunicación gRPC síncrona existente
-- La infraestructura migra de Docker Compose a **Kubernetes**
-
-### 3.2 Diagrama
+### 1.2 Diagrama de Arquitectura
 
 ```mermaid
 graph TB
-    subgraph "Capa de Presentación"
-        CLIENT["👤 Usuario<br/>(Navegador Web)"]
+    subgraph "Internet"
+        CLIENT["👤 Usuario<br/>(Navegador)"]
     end
 
-    subgraph "Capa de Frontend"
-        FE["🖥️ Frontend<br/>React 18 + Vite<br/>Nginx"]
+    subgraph "GCP VM — k3s Cluster"
+        subgraph "Ingress NGINX"
+            ING["☁️ Ingress Controller"]
+        end
+
+        subgraph "Frontend"
+            FE["🖥️ React 18 + Vite<br/>Nginx :80"]
+        end
+
+        subgraph "API Layer"
+            GW["🔀 API Gateway<br/>Express.js :3000<br/>JWT · Roles · REST"]
+        end
+
+        subgraph "Microservicios gRPC"
+            AUTH["🔐 Auth<br/>:50051"]
+            REST_SVC["📋 Restaurant<br/>:50052"]
+            ORD["📦 Order<br/>:50053"]
+            DEL["🚚 Delivery<br/>:50054"]
+            NOTIF["📧 Notification<br/>:50055"]
+            FX["💱 FX Service<br/>:50056 (Python)"]
+            PAY["💳 Payment<br/>:50057"]
+        end
+
+        subgraph "Infrastructure"
+            MQ["🐇 RabbitMQ<br/>AMQP :5672"]
+            REDIS["⚡ Redis<br/>:6379"]
+        end
+
+        subgraph "Databases (independientes)"
+            AUTH_DB[("auth_db")]
+            REST_DB[("restaurant_db")]
+            ORD_DB[("order_db")]
+            DEL_DB[("delivery_db")]
+            PAY_DB[("payment_db")]
+        end
     end
 
-    subgraph "Capa de API"
-        GW["🔀 API Gateway<br/>Express.js<br/>JWT · Roles · REST"]
-    end
-
-    subgraph "Capa de Microservicios"
-        AUTH["🔐 Auth Service<br/>gRPC :50051"]
-        REST_SVC["📋 Restaurant Service<br/>gRPC :50052"]
-        ORD["📦 Order Service<br/>gRPC :50053"]
-        DEL["🚚 Delivery Service<br/>gRPC :50054"]
-        NOTIF["📧 Notification Service<br/>gRPC :50055"]
-    end
-
-    subgraph "Capa de Mensajería"
-        MQ["🐇 RabbitMQ<br/>Cola: new_orders<br/>AMQP :5672"]
-    end
-
-    subgraph "Capa de Datos"
-        AUTH_DB[("Auth DB<br/>PostgreSQL")]
-        REST_DB[("Restaurant DB<br/>PostgreSQL")]
-        ORD_DB[("Order DB<br/>PostgreSQL")]
-        DEL_DB[("Delivery DB<br/>PostgreSQL")]
-    end
-
-    subgraph "Servicios Externos"
-        SMTP["📨 Gmail SMTP"]
-    end
-
-    CLIENT -->|HTTP| FE
-    FE -->|REST/JSON| GW
+    CLIENT -->|HTTP| ING
+    ING -->|/| FE
+    ING -->|/api| GW
 
     GW -->|gRPC| AUTH
     GW -->|gRPC| REST_SVC
     GW -->|gRPC| ORD
     GW -->|gRPC| DEL
+    GW -->|gRPC| FX
+    GW -->|gRPC| PAY
 
     ORD -->|"publish (async)"| MQ
     MQ -->|"consume (async)"| REST_SVC
-
     ORD -.->|gRPC| NOTIF
     DEL -.->|gRPC| ORD
+
+    FX -->|cache| REDIS
 
     AUTH --> AUTH_DB
     REST_SVC --> REST_DB
     ORD --> ORD_DB
     DEL --> DEL_DB
+    PAY --> PAY_DB
 
-    NOTIF -->|SMTP/TLS| SMTP
-
-    style MQ fill:#ff9800,stroke:#e65100,color:#fff
-    style ORD fill:#e8f5e9,stroke:#388e3c
-    style REST_SVC fill:#f3e5f5,stroke:#7b1fa2
-    style GW fill:#fff9c4,stroke:#f9a825
+    NOTIF -->|SMTP| SMTP["📨 Gmail"]
 ```
 
-### 3.3 Flujo de Comunicación Actualizado
+### 1.3 Comunicación entre Servicios
 
-```
-[Navegador] ──REST/JSON──▶ [API Gateway :3000]
-                                   │
-                    ┌──────────────┼──────────────┬──────────────┐
-                    │ gRPC         │ gRPC         │ gRPC         │ gRPC
-                    ▼              ▼              ▼              ▼
-              [Auth :50051]  [Catalog :50052] [Order :50053] [Delivery :50054]
-                    │              ▲              │              │
-                    ▼              │              ▼              ▼
-              [Auth DB]           │         [Order DB]     [Deliv DB]
-                                  │              │
-                                  │    publish   │
-                                  │    ┌─────────┘
-                                  │    ▼
-                              [RabbitMQ :5672]
-                                  │    Cola: "new_orders"
-                                  │    │
-                              consume  │
-                              ┌────────┘
-                              ▼
-                        [Restaurant DB]
-                                           [Order :50053]
-                                                │ gRPC
-                                                ▼
-                                        [Notification :50055]
-                                                │ SMTP
-                                                ▼
-                                          [Gmail SMTP]
-```
+| Tipo | Protocolo | Uso |
+|------|-----------|-----|
+| Síncrona | gRPC (Protocol Buffers) | API Gateway ↔ Microservicios |
+| Asíncrona | AMQP (RabbitMQ) | Order → Restaurant (cola de pedidos) |
+| Cache | Redis | FX Service (tasas de cambio) |
+| Externa | REST/SMTP | FX API externa, Gmail |
 
 ---
 
-## 4. Diagrama de Despliegue en Kubernetes
+## 2. Microservicios Implementados
 
-### 4.1 Arquitectura K8s
+### 2.1 Resumen
 
-```mermaid
-graph TB
-    subgraph "Internet"
-        USER["👤 Usuario"]
-    end
+| # | Servicio | Puerto | Lenguaje | Base de Datos | Descripción |
+|---|----------|--------|----------|---------------|-------------|
+| 1 | auth-service | 50051 | Node.js | auth_db | Registro, login, JWT, roles |
+| 2 | restaurant-catalog-service | 50052 | Node.js | restaurant_db | CRUD restaurantes, menú, promociones, búsqueda |
+| 3 | order-service | 50053 | Node.js | order_db | Gestión de órdenes, publicación RabbitMQ |
+| 4 | delivery-service | 50054 | Node.js | delivery_db | Asignación y tracking de entregas, evidencia fotográfica |
+| 5 | notification-service | 50055 | Node.js | — | Notificaciones email vía SMTP |
+| 6 | fx-service | 50056 | Python | — | Conversión de monedas con cache Redis |
+| 7 | payment-service | 50057 | Node.js | payment_db | Pagos, cupones, wallet recargable |
+| 8 | api-gateway | 3000 | Node.js | — | REST → gRPC, JWT middleware, roles |
+| 9 | frontend | 80 | React 18 | — | SPA con Nginx |
 
-    subgraph "Google Kubernetes Engine (GKE)"
-        subgraph "Ingress Controller"
-            ING["☁️ Ingress<br/>NGINX Ingress Controller<br/>delivereats.example.com"]
-        end
+### 2.2 Protobuf Definitions
 
-        subgraph "Namespace: delivereats"
+Cada servicio define su interfaz en archivos `.proto`:
 
-            subgraph "Frontend"
-                FE_DEP["Deployment: frontend<br/>replicas: 2"]
-                FE_SVC["Service: frontend-svc<br/>ClusterIP :80"]
-            end
-
-            subgraph "API Gateway"
-                GW_DEP["Deployment: api-gateway<br/>replicas: 2"]
-                GW_SVC["Service: api-gateway-svc<br/>ClusterIP :3000"]
-            end
-
-            subgraph "Auth Service"
-                AS_DEP["Deployment: auth-service<br/>replicas: 2"]
-                AS_SVC["Service: auth-svc<br/>ClusterIP :50051"]
-                AS_DB["StatefulSet: auth-db<br/>PostgreSQL<br/>replicas: 1"]
-                AS_PVC["PVC: auth-db-pvc<br/>10Gi"]
-            end
-
-            subgraph "Restaurant Service"
-                RS_DEP["Deployment: restaurant-service<br/>replicas: 2"]
-                RS_SVC["Service: restaurant-svc<br/>ClusterIP :50052"]
-                RS_DB["StatefulSet: restaurant-db<br/>PostgreSQL<br/>replicas: 1"]
-                RS_PVC["PVC: restaurant-db-pvc<br/>10Gi"]
-            end
-
-            subgraph "Order Service"
-                OS_DEP["Deployment: order-service<br/>replicas: 2"]
-                OS_SVC["Service: order-svc<br/>ClusterIP :50053"]
-                OS_DB["StatefulSet: order-db<br/>PostgreSQL<br/>replicas: 1"]
-                OS_PVC["PVC: order-db-pvc<br/>10Gi"]
-            end
-
-            subgraph "Delivery Service"
-                DS_DEP["Deployment: delivery-service<br/>replicas: 2"]
-                DS_SVC["Service: delivery-svc<br/>ClusterIP :50054"]
-                DS_DB["StatefulSet: delivery-db<br/>PostgreSQL<br/>replicas: 1"]
-                DS_PVC["PVC: delivery-db-pvc<br/>10Gi"]
-            end
-
-            subgraph "Notification Service"
-                NS_DEP["Deployment: notification-service<br/>replicas: 1"]
-                NS_SVC["Service: notification-svc<br/>ClusterIP :50055"]
-            end
-
-            subgraph "RabbitMQ"
-                MQ_SS["StatefulSet: rabbitmq<br/>replicas: 1"]
-                MQ_SVC["Service: rabbitmq-svc<br/>ClusterIP :5672"]
-                MQ_PVC["PVC: rabbitmq-pvc<br/>5Gi"]
-            end
-
-            CM["ConfigMap: delivereats-config"]
-            SEC["Secret: delivereats-secrets"]
-        end
-    end
-
-    USER -->|HTTPS| ING
-    ING -->|/| FE_SVC
-    ING -->|/api| GW_SVC
-    FE_SVC --> FE_DEP
-    GW_SVC --> GW_DEP
-    GW_DEP -->|gRPC| AS_SVC
-    GW_DEP -->|gRPC| RS_SVC
-    GW_DEP -->|gRPC| OS_SVC
-    GW_DEP -->|gRPC| DS_SVC
-    OS_DEP -->|AMQP publish| MQ_SVC
-    MQ_SVC -->|AMQP consume| RS_DEP
-    AS_DEP --> AS_DB
-    RS_DEP --> RS_DB
-    OS_DEP --> OS_DB
-    DS_DEP --> DS_DB
-    AS_DB --> AS_PVC
-    RS_DB --> RS_PVC
-    OS_DB --> OS_PVC
-    DS_DB --> DS_PVC
-    MQ_SS --> MQ_PVC
-
-    style MQ_SS fill:#ff9800,stroke:#e65100,color:#fff
-    style ING fill:#4caf50,stroke:#2e7d32,color:#fff
-```
-
-### 4.2 Recursos de Kubernetes por Servicio
-
-| Servicio | Tipo | Replicas | Puerto | Service Type |
-|----------|------|----------|--------|-------------|
-| frontend | Deployment | 2 | 80 | ClusterIP |
-| api-gateway | Deployment | 2 | 3000 | ClusterIP |
-| auth-service | Deployment | 2 | 50051 | ClusterIP |
-| restaurant-service | Deployment | 2 | 50052 | ClusterIP |
-| order-service | Deployment | 2 | 50053 | ClusterIP |
-| delivery-service | Deployment | 2 | 50054 | ClusterIP |
-| notification-service | Deployment | 1 | 50055 | ClusterIP |
-| rabbitmq | StatefulSet | 1 | 5672/15672 | ClusterIP |
-| auth-db | StatefulSet | 1 | 5432 | ClusterIP |
-| restaurant-db | StatefulSet | 1 | 5432 | ClusterIP |
-| order-db | StatefulSet | 1 | 5432 | ClusterIP |
-| delivery-db | StatefulSet | 1 | 5432 | ClusterIP |
-| ingress | Ingress | — | 80/443 | LoadBalancer |
-
-### 4.3 ConfigMap y Secrets
-
-**ConfigMap: `delivereats-config`**
-```yaml
-data:
-  NODE_ENV: "production"
-  AUTH_SERVICE_HOST: "auth-svc:50051"
-  RESTAURANT_SERVICE_HOST: "restaurant-svc:50052"
-  ORDER_SERVICE_HOST: "order-svc:50053"
-  DELIVERY_SERVICE_HOST: "delivery-svc:50054"
-  NOTIFICATION_SERVICE_HOST: "notification-svc:50055"
-  RABBITMQ_URL: "amqp://rabbitmq-svc:5672"
-  DB_PORT: "5432"
-```
-
-**Secret: `delivereats-secrets`**
-```yaml
-data:
-  JWT_SECRET: (base64)
-  DB_PASSWORD: (base64)
-  RABBITMQ_PASSWORD: (base64)
-  SMTP_USER: (base64)
-  SMTP_PASS: (base64)
-```
+| Archivo | RPCs principales |
+|---------|-----------------|
+| `proto/auth.proto` | Register, Login, ValidateToken, GetUsers |
+| `proto/restaurant.proto` | ListRestaurants, GetRestaurant, CreateRestaurant, AddMenuItem, CreatePromotion, ListPromotions, DeletePromotion, SearchRestaurants |
+| `proto/order.proto` | CreateOrder, GetMyOrders, GetRestaurantOrders, UpdateOrderStatus, GetAllOrders, RateOrder |
+| `proto/delivery.proto` | AcceptOrder, UpdateDeliveryStatus, GetMyDeliveries, GetDeliveryByOrder, UploadEvidence |
+| `proto/notification.proto` | SendNotification |
+| `proto/fx.proto` | Convert, GetRates |
+| `proto/payment.proto` | ProcessPayment, CreateCoupon, ListCoupons, DeleteCoupon, ValidateCoupon, GetWalletBalance, RechargeWallet, GetWalletTransactions |
 
 ---
 
-## 5. Diagrama Entidad-Relación Actualizado
+## 3. Nuevas Funcionalidades Fase 2
 
-### 5.1 Cambios respecto a Fase 1
+### 3.1 Sistema de Pagos y Cupones (2.5 pts)
 
-- Se actualiza el esquema de **orders** para usar `customer_id` y `address_id` con tipos ENUM para `status` y `payment_method`
-- Se actualizan **order_items** para incluir `unit_price` y `subtotal` calculado
-- Se agrega el concepto de **mensajes de cola** (no se persiste en DB, es en memoria/RabbitMQ)
+**Métodos de pago soportados:**
+- Efectivo
+- Tarjeta de crédito/débito (simulación)
+- Wallet (saldo recargable)
 
-### 5.2 Diagrama ER Actualizado
+**Cupones:**
+- CRUD completo para administradores
+- Descuentos porcentuales y fijos
+- Validación por código, fecha de expiración, y uso máximo
+- Aplicación automática en el checkout
+
+**Wallet Recargable:**
+- Saldo por cliente en `payment_db`
+- Recarga con validación de monto > 0
+- Consulta de balance en tiempo real
+- Historial de transacciones (recargas y débitos)
+- Verificación de saldo suficiente al pagar
+
+### 3.2 Conversión de Moneda — FX Service + Redis (10 pts)
+
+**Arquitectura:**
+- FX Service en **Python** (Flask + gRPC)
+- Consulta API externa de tasas de cambio
+- **Cache en Redis** con doble TTL:
+  - Short TTL (5min): para tasas frescas
+  - Long TTL (24h): fallback si la API falla
+- Monedas soportadas: GTQ, USD, EUR, MXN, y más
+
+**Flujo:**
+```
+Frontend → API Gateway → FX Service → Redis (cache hit?)
+                                         ├─ Sí → retorna cached
+                                         └─ No → API externa → guarda en Redis → retorna
+```
+
+### 3.3 Sistema de Calificaciones (5 pts)
+
+**Calificaciones por:**
+- Restaurante (1-5 estrellas + comentario)
+- Repartidor (1-5 estrellas + comentario)
+- Producto/orden (1-5 estrellas + comentario)
+
+**Implementación:**
+- Tablas `ratings` en order_db (restaurant_rating, delivery_rating, product_rating)
+- RPC `RateOrder` en order-service
+- Promedio visible en el catálogo de restaurantes
+- UI con estrellas interactivas en "Mis Pedidos"
+
+### 3.4 Evidencia de Entrega — Fotografía (2.5 pts)
+
+**Flujo:**
+1. Repartidor sube foto vía API Gateway (`multipart/form-data`)
+2. Archivo se guarda en PVC (`evidence-uploads-pvc`)
+3. Se registra path en delivery_db
+4. Cliente ve la foto como prueba de entrega
+
+**Almacenamiento:**
+- PVC de 2Gi montado en `/app/uploads`
+- Servido vía Ingress en ruta `/uploads`
+
+### 3.5 Colas de Pedidos — RabbitMQ (10 pts)
+
+**Componentes:**
+- Exchange: `orders_exchange` (direct, durable)
+- Cola: `new_orders` (durable)
+- Mensajes: persistentes (deliveryMode: 2)
+
+**Flujo:**
+1. Order-Service crea orden en DB
+2. Publica mensaje JSON en `orders_exchange`
+3. Restaurant-Service consume de `new_orders`
+4. Confirma procesamiento (ACK)
+
+**Resiliencia:**
+- Cola durable (sobrevive restart del broker)
+- Mensajes persistentes
+- ACK manual (garantiza procesamiento)
+- Reconexión automática con backoff exponencial
+
+### 3.6 Promociones y Búsqueda (Funcionalidades P6)
+
+**Promociones:**
+- CRUD de promociones por restaurante
+- Tipos: porcentaje y monto fijo
+- Fechas inicio/fin, estado activo/inactivo
+- Badges visuales en tarjetas de restaurante
+
+**Búsqueda y Filtros:**
+- Búsqueda por nombre de restaurante
+- Filtro por tipo de comida
+- Filtro por restaurantes con promociones activas
+- Filtro por mejor puntuados
+- Filtro por más recientes
+
+---
+
+## 4. Diagrama Entidad-Relación
+
+### 4.1 Diagrama ER Completo (5 DBs independientes)
 
 ```mermaid
 erDiagram
     %% ===== AUTH DB =====
     USERS {
         serial id PK
-        varchar email UK "NOT NULL"
-        varchar password "NOT NULL (bcrypt hash)"
-        varchar name "NOT NULL"
-        varchar role "CLIENTE | RESTAURANTE | REPARTIDOR | ADMINISTRADOR"
-        timestamp created_at "DEFAULT CURRENT_TIMESTAMP"
+        varchar email UK
+        varchar password "bcrypt hash"
+        varchar name
+        varchar role "CLIENTE|RESTAURANTE|REPARTIDOR|ADMINISTRADOR"
+        timestamp created_at
     }
 
     %% ===== RESTAURANT DB =====
     RESTAURANTS {
         serial id PK
-        varchar name "NOT NULL"
+        varchar name
         varchar address
         varchar phone
         varchar schedule
         varchar food_type
-        integer owner_id "FK lógica → users.id"
+        integer owner_id
         timestamp created_at
     }
 
     MENU_ITEMS {
         serial id PK
-        integer restaurant_id FK "→ restaurants.id"
-        varchar name "NOT NULL"
+        integer restaurant_id FK
+        varchar name
         text description
-        decimal price "NOT NULL"
-        boolean available "DEFAULT true"
+        decimal price
+        boolean available
         varchar category
         timestamp created_at
     }
 
-    RESTAURANTS ||--o{ MENU_ITEMS : "tiene"
+    PROMOTIONS {
+        serial id PK
+        integer restaurant_id FK
+        varchar title
+        text description
+        varchar discount_type "percentage|fixed"
+        decimal discount_value
+        timestamp starts_at
+        timestamp ends_at
+        boolean active
+        timestamp created_at
+    }
 
-    %% ===== ORDER DB (ACTUALIZADO) =====
+    RESTAURANTS ||--o{ MENU_ITEMS : "tiene"
+    RESTAURANTS ||--o{ PROMOTIONS : "ofrece"
+
+    %% ===== ORDER DB =====
     ORDERS {
         serial id PK
-        integer customer_id "NOT NULL - FK lógica → users.id"
-        integer restaurant_id "NOT NULL - FK lógica → restaurants.id"
-        integer address_id "NOT NULL"
-        order_status status "CREADA | EN_PROCESO | FINALIZADA | RECHAZADA"
-        decimal subtotal "DEFAULT 0.00"
-        decimal delivery_fee "DEFAULT 15.00"
-        decimal tax "DEFAULT 0.00"
-        decimal total "DEFAULT 0.00"
-        payment_method payment_method "EFECTIVO | TARJETA"
+        integer customer_id
+        integer restaurant_id
+        integer address_id
+        varchar status "CREADA|EN_PROCESO|LISTA|EN_CAMINO|ENTREGADA|RECHAZADA"
+        decimal subtotal
+        decimal delivery_fee
+        decimal tax
+        decimal total
+        varchar payment_method
         text notes
         timestamp created_at
         timestamp updated_at
@@ -427,817 +337,392 @@ erDiagram
 
     ORDER_ITEMS {
         serial id PK
-        integer order_id FK "→ orders.id ON DELETE CASCADE"
-        integer menu_item_id "NOT NULL - FK lógica → menu_items.id"
-        integer quantity "NOT NULL CHECK > 0"
-        decimal unit_price "NOT NULL"
-        decimal subtotal "NOT NULL"
+        integer order_id FK
+        integer menu_item_id
+        integer quantity
+        decimal unit_price
+        decimal subtotal
         text special_notes
+    }
+
+    RATINGS {
+        serial id PK
+        integer order_id FK
+        integer customer_id
+        integer restaurant_id
+        integer delivery_person_id
+        integer restaurant_rating
+        text restaurant_comment
+        integer delivery_rating
+        text delivery_comment
+        integer product_rating
+        text product_comment
         timestamp created_at
     }
 
     ORDERS ||--o{ ORDER_ITEMS : "contiene"
+    ORDERS ||--o| RATINGS : "calificada"
 
     %% ===== DELIVERY DB =====
     DELIVERIES {
         serial id PK
-        integer order_id UK "FK lógica → orders.id"
-        integer delivery_person_id "FK lógica → users.id"
+        integer order_id UK
+        integer delivery_person_id
         varchar delivery_person_name
-        varchar status "EN_CAMINO | ENTREGADA | CANCELADA"
+        varchar status "EN_CAMINO|ENTREGADA|CANCELADA"
+        varchar evidence_photo_url
         timestamp accepted_at
         timestamp delivered_at
     }
 
-    %% Relaciones lógicas inter-servicio
-    USERS ||--o{ ORDERS : "crea (lógica)"
-    USERS ||--o{ RESTAURANTS : "es dueño (lógica)"
-    USERS ||--o{ DELIVERIES : "entrega (lógica)"
-    RESTAURANTS ||--o{ ORDERS : "recibe (lógica)"
-    ORDERS ||--o| DELIVERIES : "asignada a (lógica)"
-```
+    %% ===== PAYMENT DB =====
+    PAYMENTS {
+        serial id PK
+        integer order_id
+        integer customer_id
+        decimal amount
+        varchar currency
+        varchar method "EFECTIVO|TARJETA|WALLET"
+        varchar status "COMPLETADO|FALLIDO|PENDIENTE"
+        varchar coupon_code
+        decimal discount_applied
+        timestamp created_at
+    }
 
-### 5.3 SQL del Esquema de Orders Actualizado
+    COUPONS {
+        serial id PK
+        varchar code UK
+        varchar discount_type "percentage|fixed"
+        decimal discount_value
+        decimal min_purchase
+        integer max_uses
+        integer current_uses
+        timestamp expires_at
+        boolean active
+        timestamp created_at
+    }
 
-```sql
--- ENUMS
-CREATE TYPE order_status AS ENUM ('CREADA', 'EN_PROCESO', 'FINALIZADA', 'RECHAZADA');
-CREATE TYPE payment_method AS ENUM ('EFECTIVO', 'TARJETA');
+    WALLETS {
+        serial id PK
+        integer customer_id UK
+        decimal balance
+        timestamp created_at
+        timestamp updated_at
+    }
 
--- TABLA: ORDERS
-CREATE TABLE orders (
-    id SERIAL PRIMARY KEY,
-    customer_id INTEGER NOT NULL,
-    restaurant_id INTEGER NOT NULL,
-    address_id INTEGER NOT NULL,
-    status order_status NOT NULL DEFAULT 'CREADA',
-    subtotal DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-    delivery_fee DECIMAL(10, 2) NOT NULL DEFAULT 15.00,
-    tax DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-    total DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-    payment_method payment_method NOT NULL DEFAULT 'EFECTIVO',
-    notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+    WALLET_TRANSACTIONS {
+        serial id PK
+        integer wallet_id FK
+        varchar type "RECHARGE|DEBIT"
+        decimal amount
+        text description
+        timestamp created_at
+    }
 
--- TABLA: ORDER_ITEMS
-CREATE TABLE order_items (
-    id SERIAL PRIMARY KEY,
-    order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-    menu_item_id INTEGER NOT NULL,
-    quantity INTEGER NOT NULL CHECK (quantity > 0),
-    unit_price DECIMAL(10, 2) NOT NULL,
-    subtotal DECIMAL(10, 2) NOT NULL,
-    special_notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- TRIGGER: Auto-update updated_at
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_update_orders_updated_at
-    BEFORE UPDATE ON orders
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-```
-
-### 5.4 Diferencias con Fase 1
-
-| Campo | Fase 1 | Fase 2 (Actualizado) |
-|-------|--------|---------------------|
-| `orders.client_id` | VARCHAR (nombre incrustado) | `customer_id` INTEGER (FK lógica) |
-| `orders.status` | VARCHAR libre | **ENUM** `order_status` |
-| `orders.payment_method` | No existía | **ENUM** `payment_method` |
-| `orders.subtotal` | No existía | DECIMAL (subtotal antes de envío/impuesto) |
-| `orders.delivery_fee` | No existía | DECIMAL (DEFAULT 15.00) |
-| `orders.tax` | No existía | DECIMAL (IVA 12%) |
-| `order_items.unit_price` | `price` | `unit_price` DECIMAL |
-| `order_items.subtotal` | No existía | `subtotal` = unit_price × quantity |
-| `order_items.name` | Se duplicaba | Se elimina (se consulta al catálogo) |
-
----
-
-## 6. Diagramas de Actividades / Secuencia Actualizados
-
-### 6.1 Secuencia: Crear Orden con Publicación en Cola (NUEVO)
-
-```mermaid
-sequenceDiagram
-    actor C as Cliente
-    participant FE as Frontend
-    participant GW as API Gateway
-    participant OS as Order Service
-    participant ODB as Order DB
-    participant MQ as RabbitMQ
-    participant RS as Restaurant Service
-
-    C->>FE: Selecciona productos y confirma orden
-    FE->>GW: POST /api/orders
-    Note over GW: authMiddleware valida JWT
-    GW->>OS: gRPC CreateOrder
-
-    OS->>ODB: INSERT INTO orders + order_items
-    ODB-->>OS: orden creada (id, status: CREADA)
-
-    OS->>MQ: publish("new_orders", orderData)
-    Note over MQ: Mensaje persistente en cola
-
-    MQ-->>OS: ACK (mensaje encolado)
-
-    OS-->>GW: {success: true, order, queue_status: "message_sent"}
-    GW-->>FE: 201 Created
-    FE-->>C: Confirmación de orden
-
-    Note over MQ,RS: Consumo asíncrono
-    MQ->>RS: consume("new_orders")
-    RS->>RS: Registra/imprime orden en consola
-    RS->>MQ: ACK (mensaje procesado)
-```
-
-### 6.2 Secuencia: Flujo Completo de Orden (Actualizado con Cola)
-
-```mermaid
-sequenceDiagram
-    actor C as Cliente
-    actor R as Restaurante
-    actor D as Repartidor
-    participant GW as API Gateway
-    participant OS as Order Service
-    participant MQ as RabbitMQ
-    participant RS as Restaurant Service
-    participant DS as Delivery Service
-    participant NS as Notification Service
-
-    Note over C,NS: 1. CREACIÓN DE ORDEN (con cola)
-    C->>GW: POST /api/orders
-    GW->>OS: gRPC CreateOrder
-    OS->>OS: Persiste orden en DB
-    OS->>MQ: publish("new_orders", orderData)
-    MQ-->>RS: consume → registra nueva orden
-    OS->>NS: gRPC SendOrderCreated ✉️
-    OS-->>GW: orden CREADA
-    GW-->>C: 201 OK
-
-    Note over C,NS: 2. RESTAURANTE ACEPTA
-    R->>GW: PUT /api/orders/:id/status {status: "EN_PROCESO"}
-    GW->>OS: gRPC UpdateOrderStatus
-    OS-->>GW: orden EN_PROCESO
-    GW-->>R: 200 OK
-
-    Note over C,NS: 3. RESTAURANTE FINALIZA
-    R->>GW: PUT /api/orders/:id/status {status: "LISTA"}
-    GW->>OS: gRPC UpdateOrderStatus
-    OS-->>GW: orden LISTA
-    GW-->>R: 200 OK
-
-    Note over C,NS: 4. REPARTIDOR ACEPTA
-    D->>GW: POST /api/delivery/accept {order_id}
-    GW->>DS: gRPC AcceptOrder
-    DS->>OS: gRPC UpdateOrderStatus → EN_CAMINO
-    OS->>NS: gRPC SendOrderInRoute ✉️
-    DS-->>GW: delivery creada
-    GW-->>D: 200 OK
-
-    Note over C,NS: 5. REPARTIDOR ENTREGA
-    D->>GW: PUT /api/delivery/status {order_id, status: "ENTREGADA"}
-    GW->>DS: gRPC UpdateDeliveryStatus
-    DS->>OS: gRPC UpdateOrderStatus → ENTREGADA
-    DS-->>GW: delivery actualizada
-    GW-->>D: 200 OK
-```
-
-### 6.3 Diagrama de Actividad: Crear Orden con Cola
-
-```mermaid
-flowchart TD
-    A([Cliente envía orden]) --> B{Datos válidos?}
-    B -->|No| C[Retornar error 400]
-    B -->|Sí| D[Calcular subtotal, tax, total]
-    D --> E[INSERT INTO orders]
-    E --> F[INSERT INTO order_items]
-    F --> G{DB commit exitoso?}
-    G -->|No| H[ROLLBACK + error 500]
-    G -->|Sí| I[Publicar mensaje en RabbitMQ]
-    I --> J{RabbitMQ disponible?}
-    J -->|No| K[Log warning - orden ya guardada]
-    J -->|Sí| L[Mensaje en cola 'new_orders']
-    K --> M[Retornar 201 - orden creada]
-    L --> M
-    L --> N[Restaurant-Service consume mensaje]
-    N --> O[Imprime orden en consola]
-    O --> P[Envía ACK a RabbitMQ]
-
-    style I fill:#ff9800,stroke:#e65100,color:#fff
-    style L fill:#ff9800,stroke:#e65100,color:#fff
-    style N fill:#ce93d8,stroke:#7b1fa2
-    style O fill:#ce93d8,stroke:#7b1fa2
-```
-
-### 6.4 Diagrama de Actividad: Consumo de Mensajes
-
-```mermaid
-flowchart TD
-    A([Restaurant-Service inicia]) --> B[Conectar a RabbitMQ]
-    B --> C{Conexión exitosa?}
-    C -->|No| D[Esperar 3s y reintentar]
-    D --> B
-    C -->|Sí| E[Suscribirse a cola 'new_orders']
-    E --> F[Esperando mensajes...]
-    F --> G{Mensaje recibido?}
-    G -->|Sí| H[Parsear JSON del mensaje]
-    H --> I{JSON válido?}
-    I -->|No| J[NACK - descartar mensaje]
-    I -->|Sí| K[Imprimir orden en consola]
-    K --> L[Guardar en memoria]
-    L --> M[ACK - confirmar procesamiento]
-    J --> F
-    M --> F
-
-    style E fill:#ff9800,stroke:#e65100,color:#fff
-    style K fill:#ce93d8,stroke:#7b1fa2
+    WALLETS ||--o{ WALLET_TRANSACTIONS : "historial"
 ```
 
 ---
 
-## 7. Guía de Despliegue en Kubernetes (Paso a Paso)
+## 5. Infraestructura Kubernetes
 
-### 7.1 Prerrequisitos
+### 5.1 Cluster k3s en GCP
 
-- Cuenta de Google Cloud con billing habilitado
-- `gcloud` CLI instalado y configurado
-- `kubectl` instalado
-- Docker instalado (para builds locales)
+| Componente | Valor |
+|-----------|-------|
+| Plataforma | Google Cloud Platform |
+| VM | `delivereats-vm` (e2-medium, 2 vCPU, 4 GB RAM) |
+| Zona | us-central1-a |
+| K8s Distribution | k3s (lightweight) |
+| Ingress Controller | NGINX Ingress |
+| Namespace | `delivereats` |
 
-### 7.2 Paso 1: Crear el Clúster GKE
+### 5.2 Recursos Kubernetes
 
-```bash
-# Configurar proyecto
-gcloud config set project usac-sa-201346084
+| Recurso | Cantidad | Detalle |
+|---------|----------|---------|
+| Namespace | 1 | `delivereats` |
+| Deployments | 11 | 9 servicios + redis + rabbitmq |
+| Services (ClusterIP) | 11 | Todos ClusterIP (no NodePort/LoadBalancer) |
+| Ingress | 1 | NGINX, rutas /api, /uploads, / |
+| ConfigMap | 1 | Variables de entorno no sensibles |
+| Secret | 1 | JWT, DB passwords, SMTP credentials |
+| PVCs | 8 | 5 DBs + Redis + RabbitMQ + uploads |
 
-# Crear clúster
-gcloud container clusters create delivereats-cluster \
-  --zone us-central1-a \
-  --num-nodes 3 \
-  --machine-type e2-medium \
-  --enable-autoscaling \
-  --min-nodes 2 \
-  --max-nodes 5
+### 5.3 Detalle de Deployments
 
-# Obtener credenciales
-gcloud container clusters get-credentials delivereats-cluster \
-  --zone us-central1-a
-```
+| Deployment | Réplicas | Puertos | PVC | Health Probes |
+|-----------|----------|---------|-----|---------------|
+| auth-service | 1 | 50051 | auth-db-pvc (1Gi) | readiness + liveness |
+| restaurant-catalog-service | 1 | 50052 | restaurant-db-pvc (1Gi) | readiness |
+| order-service | 1 | 50053 | order-db-pvc (1Gi) | readiness |
+| delivery-service | 1 | 50054 | delivery-db-pvc (1Gi) | readiness |
+| notification-service | 1 | 50055 | — | — |
+| fx-service | 1 | 50056, 5000 | — | readiness + liveness (HTTP) |
+| payment-service | 1 | 50057 | payment-db-pvc (1Gi) | readiness |
+| api-gateway | 2 | 3000 | evidence-uploads-pvc (2Gi) | readiness + liveness (HTTP) |
+| frontend | 2 | 80 | — | readiness + liveness (HTTP) |
+| redis | 1 | 6379 | redis-pvc (500Mi) | readiness (redis-cli ping) |
+| rabbitmq | 1 | 5672, 15672 | rabbitmq-pvc (500Mi) | readiness + liveness |
 
-### 7.3 Paso 2: Crear Namespace
+### 5.4 ConfigMap y Secrets
 
-```bash
-kubectl create namespace delivereats
-kubectl config set-context --current --namespace=delivereats
-```
-
-### 7.4 Paso 3: Crear Secrets
-
-```bash
-# Crear secrets para bases de datos y JWT
-kubectl create secret generic delivereats-secrets \
-  --namespace=delivereats \
-  --from-literal=JWT_SECRET=delivereats_secret_key_sa_2026 \
-  --from-literal=DB_PASSWORD=delivereats123 \
-  --from-literal=RABBITMQ_PASSWORD=delivereats123 \
-  --from-literal=SMTP_USER=jalbertochigua@gmail.com \
-  --from-literal=SMTP_PASS=xyjd_snzf_dgsh_ptls
-```
-
-### 7.5 Paso 4: Crear ConfigMap
-
-```bash
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: delivereats-config
-  namespace: delivereats
+**ConfigMap (`delivereats-config`):**
+```yaml
 data:
-  NODE_ENV: "production"
-  AUTH_SERVICE_HOST: "auth-svc:50051"
-  RESTAURANT_SERVICE_HOST: "restaurant-svc:50052"
-  ORDER_SERVICE_HOST: "order-svc:50053"
-  DELIVERY_SERVICE_HOST: "delivery-svc:50054"
-  NOTIFICATION_SERVICE_HOST: "notification-svc:50055"
-  RABBITMQ_URL: "amqp://delivereats:delivereats123@rabbitmq-svc:5672"
-  DB_PORT: "5432"
-  DB_USER: "delivereats"
-EOF
+  AUTH_SERVICE_HOST: "auth-service:50051"
+  RESTAURANT_SERVICE_HOST: "restaurant-catalog-service:50052"
+  ORDER_SERVICE_HOST: "order-service:50053"
+  DELIVERY_SERVICE_HOST: "delivery-service:50054"
+  NOTIFICATION_SERVICE_HOST: "notification-service:50055"
+  FX_SERVICE_HOST: "fx-service:50056"
+  PAYMENT_SERVICE_HOST: "payment-service:50057"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  RABBITMQ_URL: "amqp://delivereats:***@rabbitmq:5672"
 ```
 
-### 7.6 Paso 5: Build y Push de Imágenes
-
-```bash
-# Configurar Docker con GCR
-gcloud auth configure-docker
-
-# Build y push de cada servicio
-SERVICES=("frontend" "api-gateway" "auth-service" "restaurant-catalog-service" "order-service" "delivery-service" "notification-service")
-
-for svc in "${SERVICES[@]}"; do
-  docker build -t gcr.io/usac-sa-201346084/$svc:v1.1.0 ./$svc/
-  docker push gcr.io/usac-sa-201346084/$svc:v1.1.0
-done
+**Secret (`delivereats-secrets`):**
+```yaml
+stringData:
+  JWT_SECRET: (valor sensible)
+  DB_PASSWORD: (valor sensible)
+  SMTP_USER: (email)
+  SMTP_PASS: (app password)
+  RABBITMQ_DEFAULT_USER: (usuario)
+  RABBITMQ_DEFAULT_PASS: (contraseña)
 ```
 
-### 7.7 Paso 6: Desplegar Bases de Datos (StatefulSets)
+### 5.5 Ingress Configuration
 
 ```yaml
-# Ejemplo: order-db StatefulSet
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: order-db
-  namespace: delivereats
-spec:
-  serviceName: order-db-svc
-  replicas: 1
-  selector:
-    matchLabels:
-      app: order-db
-  template:
-    metadata:
-      labels:
-        app: order-db
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:15-alpine
-          ports:
-            - containerPort: 5432
-          env:
-            - name: POSTGRES_USER
-              value: "delivereats"
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: delivereats-secrets
-                  key: DB_PASSWORD
-            - name: POSTGRES_DB
-              value: "delivereats_orders"
-          volumeMounts:
-            - name: order-db-storage
-              mountPath: /var/lib/postgresql/data
-          livenessProbe:
-            exec:
-              command: ["pg_isready", "-U", "delivereats"]
-            initialDelaySeconds: 10
-            periodSeconds: 10
-          readinessProbe:
-            exec:
-              command: ["pg_isready", "-U", "delivereats"]
-            initialDelaySeconds: 5
-            periodSeconds: 5
-  volumeClaimTemplates:
-    - metadata:
-        name: order-db-storage
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 10Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: order-db-svc
-  namespace: delivereats
-spec:
-  selector:
-    app: order-db
-  ports:
-    - port: 5432
-      targetPort: 5432
-  clusterIP: None
-```
-
-### 7.8 Paso 7: Desplegar RabbitMQ
-
-```yaml
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: rabbitmq
-  namespace: delivereats
-spec:
-  serviceName: rabbitmq-svc
-  replicas: 1
-  selector:
-    matchLabels:
-      app: rabbitmq
-  template:
-    metadata:
-      labels:
-        app: rabbitmq
-    spec:
-      containers:
-        - name: rabbitmq
-          image: rabbitmq:3-management-alpine
-          ports:
-            - containerPort: 5672
-            - containerPort: 15672
-          env:
-            - name: RABBITMQ_DEFAULT_USER
-              value: "delivereats"
-            - name: RABBITMQ_DEFAULT_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: delivereats-secrets
-                  key: RABBITMQ_PASSWORD
-          volumeMounts:
-            - name: rabbitmq-storage
-              mountPath: /var/lib/rabbitmq
-          livenessProbe:
-            exec:
-              command: ["rabbitmq-diagnostics", "-q", "ping"]
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            exec:
-              command: ["rabbitmq-diagnostics", "-q", "ping"]
-            initialDelaySeconds: 20
-            periodSeconds: 5
-  volumeClaimTemplates:
-    - metadata:
-        name: rabbitmq-storage
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 5Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: rabbitmq-svc
-  namespace: delivereats
-spec:
-  selector:
-    app: rabbitmq
-  ports:
-    - name: amqp
-      port: 5672
-      targetPort: 5672
-    - name: management
-      port: 15672
-      targetPort: 15672
-```
-
-### 7.9 Paso 8: Desplegar Microservicios (Deployments)
-
-```yaml
-# Ejemplo: Order Service Deployment
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: order-service
-  namespace: delivereats
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: order-service
-  template:
-    metadata:
-      labels:
-        app: order-service
-    spec:
-      containers:
-        - name: order-service
-          image: gcr.io/usac-sa-201346084/order-service:v1.1.0
-          ports:
-            - containerPort: 50053
-          envFrom:
-            - configMapRef:
-                name: delivereats-config
-          env:
-            - name: DB_HOST
-              value: "order-db-svc"
-            - name: DB_NAME
-              value: "delivereats_orders"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: delivereats-secrets
-                  key: DB_PASSWORD
-            - name: GRPC_PORT
-              value: "50053"
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 3001
-            initialDelaySeconds: 15
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 3001
-            initialDelaySeconds: 10
-            periodSeconds: 5
-          resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: 250m
-              memory: 256Mi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: order-svc
-  namespace: delivereats
-spec:
-  selector:
-    app: order-service
-  ports:
-    - port: 50053
-      targetPort: 50053
-```
-
-### 7.10 Paso 9: Configurar Ingress
-
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: delivereats-ingress
-  namespace: delivereats
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx
   rules:
-    - host: delivereats.example.com
-      http:
+    - http:
         paths:
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: api-gateway-svc
-                port:
-                  number: 3000
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: frontend-svc
-                port:
-                  number: 80
+          - path: /api          → api-gateway:3000
+          - path: /uploads      → api-gateway:3000
+          - path: /             → frontend:80
 ```
 
-### 7.11 Paso 10: Aplicar y Verificar
-
-```bash
-# Aplicar todos los manifiestos
-kubectl apply -f k8s/ --namespace=delivereats
-
-# Verificar pods
-kubectl get pods -n delivereats
-
-# Verificar services
-kubectl get svc -n delivereats
-
-# Verificar ingress
-kubectl get ingress -n delivereats
-
-# Ver logs de un servicio
-kubectl logs -f deployment/order-service -n delivereats
-
-# Verificar estado de la cola
-kubectl port-forward svc/rabbitmq-svc 15672:15672 -n delivereats
-# Luego acceder a http://localhost:15672
-```
+Anotaciones: CORS habilitado, proxy body size 10m, timeouts 60s.
 
 ---
 
-## 8. Estrategias de Rollout y Rollback
+## 6. Pipeline CI/CD
 
-### 8.1 Estrategia de Rollout: RollingUpdate
+### 6.1 Herramientas
 
-Se utiliza **RollingUpdate** como estrategia de despliegue. Esto permite actualizar los Pods gradualmente sin downtime.
-
-```yaml
-spec:
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1        # Máximo 1 Pod extra durante actualización
-      maxUnavailable: 0   # Siempre mantener todas las réplicas disponibles
-```
-
-**Comportamiento:**
-1. K8s crea un Pod nuevo con la nueva versión
-2. Espera a que pase el `readinessProbe`
-3. Redirige tráfico al nuevo Pod
-4. Elimina un Pod viejo
-5. Repite hasta actualizar todos
-
-### 8.2 Rollback
-
-Si un despliegue falla (Pod no pasa health check), se ejecuta rollback:
-
-```bash
-# Ver historial de despliegues
-kubectl rollout history deployment/order-service -n delivereats
-
-# Rollback a la versión anterior
-kubectl rollout undo deployment/order-service -n delivereats
-
-# Rollback a una revisión específica
-kubectl rollout undo deployment/order-service --to-revision=2 -n delivereats
-
-# Verificar estado del rollout
-kubectl rollout status deployment/order-service -n delivereats
-```
-
-### 8.3 Configuración de Probes para Rollout Seguro
-
-```yaml
-# Liveness: si falla, K8s reinicia el Pod
-livenessProbe:
-  httpGet:
-    path: /health
-    port: 3001
-  initialDelaySeconds: 15
-  periodSeconds: 10
-  failureThreshold: 3
-
-# Readiness: si falla, K8s no envía tráfico al Pod
-readinessProbe:
-  httpGet:
-    path: /health
-    port: 3001
-  initialDelaySeconds: 10
-  periodSeconds: 5
-  failureThreshold: 3
-```
-
-### 8.4 Resumen de Estrategias
-
-| Estrategia | Uso | Ventaja | Desventaja |
-|------------|-----|---------|------------|
-| **RollingUpdate** (elegida) | Producción | Zero downtime | Rollout más lento |
-| Recreate | Desarrollo/Testing | Rápido | Downtime durante actualización |
-| Blue/Green | Releases críticos | Rollback instantáneo | Requiere doble de recursos |
-| Canary | Features experimentales | Riesgo controlado | Complejidad adicional |
-
----
-
-## 9. Descripción del Pipeline CI/CD
-
-### 9.1 Herramientas
-
-| Componente | Herramienta |
-|-----------|-------------|
-| Código fuente | GitHub |
+| Componente | Tecnología |
+|-----------|-----------|
 | CI/CD | GitHub Actions |
-| Registro de imágenes | GitHub Container Registry (ghcr.io) |
-| Orquestación | Google Kubernetes Engine (GKE) |
-| Secrets en CI | GitHub Secrets |
+| Registry | GitHub Container Registry (ghcr.io) |
+| Deploy | SSH a VM con k3s |
+| Secrets | GitHub Secrets (encriptados) |
 
-### 9.2 Flujo del Pipeline
+### 6.2 Flujo del Pipeline
 
 ```mermaid
 flowchart LR
-    A[Push / PR a main] --> B[CI: Lint + Test]
-    B --> C{Tests pasan?}
-    C -->|No| D[Notificar fallo]
-    C -->|Sí| E[Build Docker Images]
-    E --> F[Push a ghcr.io]
-    F --> G[CD: Deploy a GKE]
-    G --> H[kubectl apply]
-    H --> I[Verify rollout]
-    I --> J{Healthy?}
-    J -->|No| K[Auto-rollback]
-    J -->|Sí| L[Deploy exitoso ✅]
+    A["Push a main"] --> B["Job 1: Test<br/>7 Node.js + 1 Python"]
+    B --> C{"¿Tests pasan?"}
+    C -->|No| D["❌ Pipeline falla<br/>(fail-fast: true)"]
+    C -->|Sí| E["Job 2: Build & Push<br/>9 imágenes Docker"]
+    E --> F["Push a ghcr.io<br/>tags: sha, latest, run#"]
+    F --> G["Job 3: Deploy<br/>SSH a VM k3s"]
+    G --> H["kubectl apply<br/>kubectl set image"]
+    H --> I{"¿Pods healthy?"}
+    I -->|No| J["🔄 Auto-rollback"]
+    I -->|Sí| K["✅ Deploy exitoso"]
 ```
 
-### 9.3 GitHub Actions Workflow
+### 6.3 Jobs del Pipeline
 
-```yaml
-name: CI/CD Delivereats
+**Job 1 — Test (paralelo):**
+- Matrix de 7 servicios Node.js: `npm test --coverage --forceExit`
+- FX Service Python: `pytest tests/ -v --cov`
+- `fail-fast: true` — si un test falla, se cancela todo
+- `continue-on-error: false` — no continúa con jobs siguientes
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+**Job 2 — Build & Push:**
+- Solo en push a `main` (no en PRs)
+- 9 servicios en matrix (incluye frontend)
+- Push a `ghcr.io` con tags: SHA del commit, `latest`, número de run
+- Login con `GITHUB_TOKEN` (secreto automático)
 
-env:
-  GKE_CLUSTER: delivereats-cluster
-  GKE_ZONE: us-central1-a
-  GCP_PROJECT: usac-sa-201346084
+**Job 3 — Deploy via SSH:**
+- Configura clave SSH desde `VM_SSH_KEY` secret
+- Copia manifests K8s a la VM via SCP
+- SSH: `kubectl apply` todos los manifests
+- SSH: `kubectl set image` con SHA del commit
+- Verificación: lista deployments, pods, services, ingress
+- **Rollback automático** si falla: `kubectl rollout undo`
+- Limpieza de clave SSH al finalizar
 
-jobs:
-  # ===== CI =====
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+### 6.4 GitHub Secrets Requeridos
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
+| Secret | Descripción |
+|--------|-------------|
+| `VM_SSH_KEY` | Clave privada SSH para acceder a la VM |
+| `VM_HOST` | IP de la VM GCP |
+| `VM_USER` | Usuario SSH de la VM |
+| `GHCR_TOKEN` | Token para pull de imágenes desde k3s |
 
-      - name: Install dependencies & test
-        run: |
-          for svc in auth-service restaurant-catalog-service order-service delivery-service api-gateway; do
-            cd $svc && npm ci && npm test && cd ..
-          done
+### 6.5 Versionamiento de Imágenes
 
-  # ===== BUILD & PUSH =====
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    strategy:
-      matrix:
-        service: [frontend, api-gateway, auth-service, restaurant-catalog-service, order-service, delivery-service, notification-service]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & Push
-        uses: docker/build-push-action@v5
-        with:
-          context: ./${{ matrix.service }}
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/${{ matrix.service }}:latest
-
-  # ===== DEPLOY =====
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Auth to GCP
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Setup GKE credentials
-        uses: google-github-actions/get-gke-credentials@v2
-        with:
-          cluster_name: ${{ env.GKE_CLUSTER }}
-          location: ${{ env.GKE_ZONE }}
-
-      - name: Deploy to GKE
-        run: |
-          kubectl set image deployment/order-service \
-            order-service=ghcr.io/${{ github.repository }}/order-service:${{ github.sha }} \
-            -n delivereats
-          kubectl rollout status deployment/order-service -n delivereats --timeout=120s
-```
-
-### 9.4 Variables y Secrets necesarios
-
-#### GitHub Secrets (Settings → Secrets and variables → Actions)
-
-| Secret | Descripción | Ejemplo |
-|--------|-------------|---------|
-| `GCP_SA_KEY` | JSON de la Service Account de GCP | `{"type": "service_account", ...}` |
-| `JWT_SECRET` | Secret para firmar tokens JWT | `delivereats_secret_key_sa_2026` |
-| `DB_PASSWORD` | Contraseña de las bases de datos | `delivereats123` |
-| `RABBITMQ_PASSWORD` | Contraseña de RabbitMQ | `delivereats123` |
-| `SMTP_USER` | Email para notificaciones | `jalbertochigua@gmail.com` |
-| `SMTP_PASS` | App password de Gmail | `xyjd snzf dgsh ptls` |
-
-#### Variables de Entorno (no sensibles)
-
-| Variable | Valor |
-|----------|-------|
-| `GKE_CLUSTER` | `delivereats-cluster` |
-| `GKE_ZONE` | `us-central1-a` |
-| `GCP_PROJECT` | `usac-sa-201346084` |
-| `NODE_ENV` | `production` |
+Cada imagen se tagea con 3 identificadores:
+1. **SHA del commit** — trazabilidad exacta
+2. **`latest`** — siempre la versión más reciente
+3. **Número de run** — numeración secuencial
 
 ---
 
-## 10. Descripción del Flujo JWT
+## 7. Estrategias de Rollout y Rollback
+
+### 7.1 Estrategia: RollingUpdate
+
+Todos los deployments usan `RollingUpdate`:
+
+```yaml
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0    # Nunca dejar sin réplicas
+    maxSurge: 1          # Máximo 1 pod extra durante update
+```
+
+**Comportamiento:**
+1. K8s crea 1 pod nuevo con la nueva imagen
+2. Espera a que pase `readinessProbe`
+3. Redirige tráfico al nuevo pod
+4. Termina el pod viejo
+5. Repite hasta actualizar todos
+
+### 7.2 Rollback Manual
+
+```bash
+# Ver historial
+kubectl rollout history deployment/api-gateway -n delivereats
+
+# Rollback a versión anterior
+kubectl rollout undo deployment/api-gateway -n delivereats
+
+# Rollback a revisión específica
+kubectl rollout undo deployment/api-gateway --to-revision=2 -n delivereats
+```
+
+### 7.3 Rollback Automático en CI/CD
+
+El pipeline ejecuta rollback si el deploy falla:
+
+```yaml
+- name: Rollback on failure
+  if: failure()
+  run: |
+    for svc in $SERVICES; do
+      sudo kubectl rollout undo deployment/$svc -n delivereats || true
+    done
+```
+
+### 7.4 Comparación de Estrategias
+
+| Estrategia | Downtime | Uso | Elegida |
+|------------|----------|-----|---------|
+| **RollingUpdate** | Zero | Producción | ✅ |
+| Recreate | Sí | Dev/Test | — |
+| Blue/Green | Zero | Releases críticos | — |
+| Canary | Zero | Features experimentales | — |
+
+---
+
+## 8. Pruebas Unitarias
+
+### 8.1 Resumen de Cobertura
+
+| Servicio | Framework | Tests | Estado |
+|----------|-----------|-------|--------|
+| auth-service | Jest | 12 | ✅ Pass |
+| restaurant-catalog-service | Jest | 22 | ✅ Pass |
+| order-service | Jest | 15 | ✅ Pass |
+| delivery-service | Jest | 19 | ✅ Pass |
+| notification-service | Jest | 11 | ✅ Pass |
+| payment-service | Jest | 20 | ✅ Pass |
+| api-gateway | Jest + Supertest | 42 | ✅ Pass |
+| fx-service | Pytest | 18 | ✅ Pass |
+| **TOTAL** | | **159** | **✅ All Pass** |
+
+### 8.2 Qué se cubre
+
+- **auth-service (12):** Register, login, validate token, get users, duplicate email, wrong password, invalid token
+- **restaurant-catalog-service (22):** CRUD restaurants, menu items, search by name/food_type, promotions CRUD, list with filters
+- **order-service (15):** Create order, list orders, update status, rate order, get all (admin), validation errors
+- **delivery-service (19):** Accept delivery, update status, get by order, upload evidence, my deliveries
+- **notification-service (11):** Send email, template rendering, SMTP errors, missing fields
+- **payment-service (20):** Process payment (efectivo/tarjeta/wallet), coupons CRUD, validate coupon, wallet balance, recharge, transactions
+- **api-gateway (42):** Health check, auth routes, restaurant routes (CRUD + search + promotions), order routes, delivery routes, payment routes (process + wallet + FX + coupons), error handling, authorization
+- **fx-service (18):** Convert currencies, get rates, Redis cache hit/miss, API fallback, invalid currency, error handling
+
+### 8.3 Ejecución
+
+```bash
+# Todos los servicios Node.js
+for svc in auth-service restaurant-catalog-service order-service delivery-service \
+           notification-service payment-service api-gateway; do
+  cd $svc && npm test -- --coverage --forceExit && cd ..
+done
+
+# FX Service (Python)
+cd fx-service && pytest tests/ -v --cov=app --cov-report=term-missing
+```
+
+---
+
+## 9. Frontend — Flujos Integrados
+
+### 9.1 Páginas y Roles
+
+| Página | Ruta | Rol | Funcionalidad |
+|--------|------|-----|--------------|
+| Login | `/login` | Público | Email + password |
+| Register | `/register` | Público | Registro con selección de rol |
+| Dashboard Cliente | `/client` | CLIENTE | Ver restaurantes, buscar, filtrar |
+| Menú Restaurante | `/restaurant/:id` | CLIENTE | Ver menú, reviews, agregar al carrito |
+| Mis Pedidos | `/my-orders` | CLIENTE | Ver pedidos, calificar, ver evidencia |
+| Pago | `/payment` | CLIENTE | Método de pago, cupones, wallet, FX |
+| Dashboard Restaurante | `/restaurant-dashboard` | RESTAURANTE | Pedidos, menú, promociones |
+| Dashboard Repartidor | `/delivery-dashboard` | REPARTIDOR | Pedidos disponibles, subir evidencia |
+| Dashboard Admin | `/admin` | ADMINISTRADOR | Usuarios, restaurantes, cupones |
+
+### 9.2 Flujos Nuevos de Fase 2
+
+**Pago con Wallet:**
+1. Cliente selecciona "Wallet" como método de pago
+2. Se muestra saldo actual en tiempo real
+3. Si saldo insuficiente → formulario de recarga inline
+4. Recarga → se actualiza balance → puede pagar
+
+**Calificaciones:**
+1. Cliente va a "Mis Pedidos"
+2. En pedidos entregados aparece "Calificar"
+3. Selecciona estrellas (1-5) para restaurante, repartidor, producto
+4. Agrega comentario opcional
+5. Promedio visible en catálogo de restaurantes
+
+**Búsqueda y Filtros:**
+1. Barra de búsqueda en Dashboard Cliente
+2. Botones: Nuevos, Destacados, Mejor Puntuados, Con Promociones
+3. Dropdown de tipo de comida
+4. Badges de promoción en tarjetas
+
+**Gestión de Promociones (Restaurante):**
+1. Restaurante crea promoción (título, tipo descuento, valor, fechas)
+2. Se muestra como badge en el catálogo público
+3. Clientes filtran por "Con Promociones"
+
+---
+
+## 10. Flujo JWT y Autorización
 
 ### 10.1 Ciclo de Vida del Token
 
@@ -1248,45 +733,25 @@ sequenceDiagram
     participant GW as API Gateway
     participant AS as Auth Service
 
-    Note over U,AS: 1. OBTENER TOKEN
     U->>FE: Login (email + password)
     FE->>GW: POST /api/auth/login
-    GW->>AS: gRPC Login(email, password)
-    AS->>AS: Verifica bcrypt(password, hash)
-    AS->>AS: jwt.sign({id, email, role, name}, SECRET, {expiresIn: '24h'})
-    AS-->>GW: {token: "eyJhbG...", user: {...}}
-    GW-->>FE: 200 OK + token
-    FE->>FE: localStorage.setItem('token', token)
+    GW->>AS: gRPC Login
+    AS->>AS: bcrypt.compare + jwt.sign
+    AS-->>GW: {token, user}
+    GW-->>FE: 200 OK
+    FE->>FE: localStorage.setItem('token')
 
-    Note over U,AS: 2. USAR TOKEN EN PETICIONES
-    U->>FE: Acción protegida (ej: crear orden)
-    FE->>GW: POST /api/orders<br/>Authorization: Bearer eyJhbG...
-    GW->>GW: Extrae token del header
-    GW->>AS: gRPC ValidateToken(token)
+    U->>FE: Acción protegida
+    FE->>GW: GET /api/orders<br/>Authorization: Bearer TOKEN
+    GW->>AS: gRPC ValidateToken
     AS->>AS: jwt.verify(token, SECRET)
-    alt Token válido
-        AS-->>GW: {valid: true, user_id: 1, role: "CLIENTE", ...}
-        GW->>GW: req.user = decoded payload
-        GW->>GW: authorizeRoles('CLIENTE') → OK
-        GW->>GW: Procesa petición normalmente
-    else Token inválido/expirado
-        AS-->>GW: {valid: false}
-        GW-->>FE: 401 Unauthorized
-        FE->>FE: Redirige a /login
-    end
+    AS-->>GW: {valid, user_id, role}
+    GW->>GW: authorizeRoles check
+    GW->>GW: Procesa request
 ```
 
-### 10.2 Estructura del Token JWT
+### 10.2 Payload del Token
 
-**Header:**
-```json
-{
-  "alg": "HS256",
-  "typ": "JWT"
-}
-```
-
-**Payload:**
 ```json
 {
   "id": 1,
@@ -1298,171 +763,132 @@ sequenceDiagram
 }
 ```
 
-**Firma:**
-```
-HMACSHA256(base64UrlEncode(header) + "." + base64UrlEncode(payload), JWT_SECRET)
-```
-
-### 10.3 Ejemplo de Peticiones
-
-#### Login (obtener token)
-
-```bash
-# Request
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "jose@test.com",
-    "password": "123456"
-  }'
-
-# Response
-{
-  "success": true,
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJqb3NlQHRlc3QuY29tIiwicm9sZSI6IkNMSUVOVEUiLCJuYW1lIjoiSm9zw6kgQWxiZXJ0byIsImlhdCI6MTc0MDQ1MTIwMCwiZXhwIjoxNzQwNTM3NjAwfQ.abc123",
-  "user": {
-    "id": 1,
-    "email": "jose@test.com",
-    "role": "CLIENTE",
-    "name": "José Alberto"
-  }
-}
-```
-
-#### Petición protegida (con token)
-
-```bash
-# Request - Crear orden (requiere rol CLIENTE)
-curl -X POST http://localhost:3000/api/orders \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
-  -d '{
-    "restaurant_id": 1,
-    "items": [{"menu_item_id": 1, "quantity": 2, "unit_price": 45.00}],
-    "delivery_address": "Ciudad Universitaria USAC"
-  }'
-
-# Response 201 (token válido + rol correcto)
-{
-  "success": true,
-  "message": "Orden #1 creada exitosamente"
-}
-```
-
-#### Petición sin token o token inválido
-
-```bash
-# Sin token
-curl -X GET http://localhost:3000/api/restaurants
-# → 401 {"message": "Token no proporcionado"}
-
-# Token expirado
-curl -X GET http://localhost:3000/api/restaurants \
-  -H "Authorization: Bearer token_expirado"
-# → 401 {"message": "Token inválido o expirado"}
-
-# Rol incorrecto (CLIENTE intenta crear restaurante)
-curl -X POST http://localhost:3000/api/restaurants \
-  -H "Authorization: Bearer token_de_cliente"
-  -d '{"name": "Mi Restaurante"}'
-# → 403 {"message": "No tienes permisos para esta acción"}
-```
-
-### 10.4 Matriz de Autorización por Rol
+### 10.3 Matriz de Autorización
 
 | Endpoint | CLIENTE | RESTAURANTE | REPARTIDOR | ADMIN |
 |----------|---------|-------------|------------|-------|
-| POST /auth/register | ✅ Público | ✅ Público | ✅ Público | ✅ Público |
-| POST /auth/login | ✅ Público | ✅ Público | ✅ Público | ✅ Público |
+| POST /auth/register | ✅ | ✅ | ✅ | ✅ |
+| POST /auth/login | ✅ | ✅ | ✅ | ✅ |
 | GET /restaurants | ✅ | ✅ | ✅ | ✅ |
-| POST /restaurants | ❌ | ❌ | ❌ | ✅ |
-| POST /orders | ✅ | ❌ | ❌ | ❌ |
-| GET /orders/my | ✅ | ❌ | ❌ | ❌ |
-| GET /orders/restaurant/:id | ❌ | ✅ | ❌ | ❌ |
-| PUT /orders/:id/status | ❌ | ✅ | ❌ | ❌ |
-| POST /delivery/accept | ❌ | ❌ | ✅ | ❌ |
-| GET /orders/all | ❌ | ❌ | ❌ | ✅ |
+| GET /restaurants/search | ✅ | ✅ | ✅ | ✅ |
+| POST /restaurants | — | — | — | ✅ |
+| POST /orders | ✅ | — | — | — |
+| GET /orders/my | ✅ | — | — | — |
+| GET /orders/restaurant/:id | — | ✅ | — | — |
+| PUT /orders/:id/status | — | ✅ | — | — |
+| POST /delivery/accept | — | — | ✅ | — |
+| GET /wallet | ✅ | — | — | — |
+| POST /wallet/recharge | ✅ | — | — | — |
+| POST /payments/coupons | — | — | — | ✅ |
+| GET /orders/all | — | — | — | ✅ |
 
 ---
 
-## 11. Prueba de Concepto — RabbitMQ
+## 11. Sistema de Colas — RabbitMQ
 
-### 11.1 Descripción
+### 11.1 Arquitectura
 
-Se implementó un PoC funcional de comunicación asíncrona usando **RabbitMQ** entre dos microservicios:
-
-| Rol | Servicio | Acción |
-|-----|----------|--------|
-| **Productor** | Order-Service | Publica mensaje JSON en la cola `new_orders` al crear una orden |
-| **Consumidor** | Restaurant-Service | Consume mensajes de la cola y los imprime en consola |
-
-### 11.2 Tecnologías
-
-| Componente | Tecnología |
-|-----------|-----------|
-| Broker | RabbitMQ 3 Management Alpine |
-| Protocolo | AMQP 0-9-1 |
-| Librería | amqplib (Node.js) |
+| Componente | Detalle |
+|-----------|---------|
+| Exchange | `orders_exchange` (direct, durable) |
 | Cola | `new_orders` (durable) |
-| Mensajes | JSON persistente |
+| Binding Key | `new_order` |
+| Productor | order-service |
+| Consumidor | restaurant-catalog-service |
+| Mensajes | JSON, persistent (deliveryMode: 2) |
 
-### 11.3 Estructura del Mensaje
+### 11.2 Flujo
 
-```json
-{
-  "order_id": 1,
-  "customer_id": 1,
-  "customer_name": "José Alberto",
-  "customer_email": "jose@test.com",
-  "restaurant_id": 1,
-  "restaurant_name": "Pizza Planet",
-  "items": [
-    {"menu_item_id": 1, "name": "Pizza Margherita", "quantity": 2, "price": 45.00},
-    {"menu_item_id": 2, "name": "Coca-Cola 600ml", "quantity": 2, "price": 12.00}
-  ],
-  "total": 142.68,
-  "delivery_address": "Ciudad Universitaria USAC, Zona 12",
-  "status": "CREADA",
-  "created_at": "2026-02-26T03:38:12.033Z"
-}
+```mermaid
+sequenceDiagram
+    participant OS as Order Service
+    participant MQ as RabbitMQ
+    participant RS as Restaurant Service
+
+    OS->>OS: INSERT orden en DB
+    OS->>MQ: publish("orders_exchange", "new_order", orderJSON)
+    Note over MQ: Mensaje persistente en cola durable
+    MQ-->>OS: ACK
+    OS-->>OS: Retorna 201 Created
+
+    Note over MQ,RS: Consumo asíncrono
+    MQ->>RS: deliver(orderJSON)
+    RS->>RS: Procesa orden
+    RS->>MQ: ACK (confirma procesamiento)
 ```
 
-### 11.4 Cómo Ejecutar
+### 11.3 Resiliencia
+
+- **Cola durable**: sobrevive restart del broker
+- **Mensajes persistentes**: se escriben a disco
+- **ACK manual**: garantiza procesamiento antes de eliminar de la cola
+- **Prefetch 1**: un mensaje a la vez por consumidor
+- **Reconexión automática**: retry con backoff exponencial
+
+---
+
+## 12. Guía de Despliegue
+
+### 12.1 Prerrequisitos
+
+- VM en GCP con k3s instalado
+- Docker para builds
+- Acceso SSH configurado
+- GitHub Secrets configurados (VM_SSH_KEY, VM_HOST, VM_USER, GHCR_TOKEN)
+
+### 12.2 Despliegue Automático (CI/CD)
 
 ```bash
-cd PRACTICA4
-docker compose up --build
+# Push a main dispara el pipeline automáticamente
+git push origin main
 
-# En otra terminal:
-./test.sh
-
-# Ver logs del consumidor:
-docker compose logs restaurant-service
+# GitHub Actions ejecuta:
+#   Job 1: Tests (paralelo, 8 servicios) ← fail-fast
+#   Job 2: Build & Push a ghcr.io (9 imágenes con tags sha/latest/run#)
+#   Job 3: SSH a VM → kubectl apply + kubectl set image
+#   Verificación automática de pods
+#   Rollback automático si algo falla
 ```
 
-### 11.5 Resultado
+### 12.3 Despliegue Manual (backup)
 
-**Productor (Order-Service):**
-```
-✅ [Order-Service] Orden #1 creada en DB
-📤 [Order-Service] Mensaje publicado en cola "new_orders":
-   Order ID:     1
-   Restaurante:  1
-   Cliente:      1
-   Items:        2
-   Total:        Q142.68
-📨 [Order-Service] Mensaje enviado a Restaurant-Service vía RabbitMQ
+```bash
+# En la VM
+cd ~/delivereats-deploy && git pull origin main
+
+# Build e importar imágenes a k3s
+SERVICES="auth-service restaurant-catalog-service order-service delivery-service \
+          notification-service fx-service payment-service api-gateway frontend"
+for svc in $SERVICES; do
+  docker build -t delivereats-$svc ./$svc/
+  docker save delivereats-$svc | sudo k3s ctr images import -
+done
+
+# Aplicar manifests y restart
+sudo kubectl apply -f k8s/ -n delivereats
+for svc in $SERVICES; do
+  sudo kubectl rollout restart deployment/$svc -n delivereats
+done
+
+# Verificar
+sudo kubectl get pods -n delivereats
 ```
 
-**Consumidor (Restaurant-Service):**
-```
-📥 [Restaurant-Service] NUEVA ORDEN RECIBIDA DE LA COLA
-   🆔 Order ID:      1
-   👤 Cliente:        José Alberto (ID: 1)
-   🏪 Restaurante:    Pizza Planet (ID: 1)
-   💰 Total:          Q142.68
-   📋 Items:
-      1. Pizza Margherita x2 - Q45
-      2. Coca-Cola 600ml x2 - Q12
-✅ [Restaurant-Service] Orden #1 procesada y confirmada (ACK)
+### 12.4 Verificación
+
+```bash
+# Pods running
+kubectl get pods -n delivereats
+
+# Test health endpoint
+curl http://<VM_IP>/api/health
+
+# Test login
+curl -X POST http://<VM_IP>/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"123456"}'
+
+# Ver logs
+kubectl logs deployment/api-gateway -n delivereats
+kubectl logs deployment/order-service -n delivereats
 ```
