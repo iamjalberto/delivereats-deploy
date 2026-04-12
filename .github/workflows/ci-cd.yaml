@@ -142,7 +142,7 @@ jobs:
   deploy:
     name: "🚀 Deploy to Kubernetes"
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: [test, test-python]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: production
     steps:
@@ -156,75 +156,67 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      - name: Configure k3s registry credentials on VM
+      - name: Pull latest code on VM
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} << 'SSHEOF'
-            # Configurar acceso a GHCR para k3s
-            sudo mkdir -p /etc/rancher/k3s
-            sudo tee /etc/rancher/k3s/registries.yaml > /dev/null << 'EOF'
-          mirrors:
-            ghcr.io:
-              endpoint:
-                - "https://ghcr.io"
-          configs:
-            "ghcr.io":
-              auth:
-                username: ${{ github.actor }}
-                password: ${{ secrets.GHCR_TOKEN }}
-          EOF
-            sudo systemctl restart k3s || true
-            sleep 10
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} 'cd ~/SA_PROYECTO_201346084 && git pull origin main'
+
+      - name: Build and import Docker images on VM
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} 'bash -s' << 'SSHEOF'
+            set -e
+            cd ~/SA_PROYECTO_201346084
+            SERVICES="auth-service restaurant-catalog-service order-service delivery-service notification-service fx-service payment-service api-gateway frontend"
+            for svc in $SERVICES; do
+              echo "🐳 Building $svc..."
+              docker build -t delivereats-$svc ./$svc/
+              echo "📦 Importing $svc to k3s..."
+              docker save delivereats-$svc | sudo k3s ctr images import -
+            done
+            echo "✅ All images built and imported"
           SSHEOF
 
-      - name: Copy K8s manifests to VM
-        run: |
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -r k8s/ ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:~/k8s-manifests/
-
       - name: Deploy to Kubernetes
-        env:
-          SHA_TAG: ${{ github.sha }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} << SSHEOF
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} 'bash -s' << 'SSHEOF'
             set -e
-            export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+            cd ~/SA_PROYECTO_201346084
 
             echo "🔄 Deploying to k3s cluster"
-            echo "📦 Image version: ${SHA_TAG}"
 
             # Aplicar namespace y configuración
-            sudo kubectl apply -f ~/k8s-manifests/namespace.yaml
-            sudo kubectl apply -f ~/k8s-manifests/configmap.yaml
-            sudo kubectl apply -f ~/k8s-manifests/secrets.yaml
-            sudo kubectl apply -f ~/k8s-manifests/persistent-volumes.yaml
+            sudo kubectl apply -f k8s/namespace.yaml
+            sudo kubectl apply -f k8s/configmap.yaml
+            sudo kubectl apply -f k8s/secrets.yaml
+            sudo kubectl apply -f k8s/persistent-volumes.yaml
 
             # Aplicar infraestructura (Redis, RabbitMQ)
-            sudo kubectl apply -f ~/k8s-manifests/redis.yaml
-            sudo kubectl apply -f ~/k8s-manifests/rabbitmq.yaml
+            sudo kubectl apply -f k8s/redis.yaml
+            sudo kubectl apply -f k8s/rabbitmq.yaml
 
             # Esperar a que Redis y RabbitMQ estén listos
             sudo kubectl rollout status deployment/redis -n delivereats --timeout=120s || true
             sudo kubectl rollout status deployment/rabbitmq -n delivereats --timeout=180s || true
 
             # Aplicar microservicios
-            sudo kubectl apply -f ~/k8s-manifests/auth-service.yaml
-            sudo kubectl apply -f ~/k8s-manifests/restaurant-catalog-service.yaml
-            sudo kubectl apply -f ~/k8s-manifests/order-service.yaml
-            sudo kubectl apply -f ~/k8s-manifests/delivery-service.yaml
-            sudo kubectl apply -f ~/k8s-manifests/notification-service.yaml
-            sudo kubectl apply -f ~/k8s-manifests/fx-service.yaml
-            sudo kubectl apply -f ~/k8s-manifests/payment-service.yaml
+            sudo kubectl apply -f k8s/auth-service.yaml
+            sudo kubectl apply -f k8s/restaurant-catalog-service.yaml
+            sudo kubectl apply -f k8s/order-service.yaml
+            sudo kubectl apply -f k8s/delivery-service.yaml
+            sudo kubectl apply -f k8s/notification-service.yaml
+            sudo kubectl apply -f k8s/fx-service.yaml
+            sudo kubectl apply -f k8s/payment-service.yaml
 
             # Aplicar API Gateway y Frontend
-            sudo kubectl apply -f ~/k8s-manifests/api-gateway.yaml
-            sudo kubectl apply -f ~/k8s-manifests/frontend.yaml
+            sudo kubectl apply -f k8s/api-gateway.yaml
+            sudo kubectl apply -f k8s/frontend.yaml
 
             # Aplicar Ingress
-            sudo kubectl apply -f ~/k8s-manifests/ingress.yaml
+            sudo kubectl apply -f k8s/ingress.yaml
 
-            # Actualizar imágenes con el SHA del commit
+            # Restart deployments para tomar las imágenes nuevas
             SERVICES="auth-service restaurant-catalog-service order-service delivery-service notification-service fx-service payment-service api-gateway frontend"
-            for svc in \$SERVICES; do
-              sudo kubectl set image deployment/\$svc \$svc=${{ env.IMAGE_PREFIX }}/\$svc:${SHA_TAG} -n delivereats || true
+            for svc in $SERVICES; do
+              sudo kubectl rollout restart deployment/$svc -n delivereats || true
             done
 
             echo "✅ Deployment complete!"
